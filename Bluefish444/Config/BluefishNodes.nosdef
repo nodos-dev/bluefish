@@ -1,0 +1,70 @@
+{
+  "nodes": [
+    {
+      "class_name": "Channel",
+      "display_name": "Bluefish444 Channel",
+      "contents_type": "Job",
+      "description": "Creates channels & provides input variables for other Bluefish nodes",
+      "pins": [
+        {
+          "name": "Channel",
+          "type_name": "bluefish444.ChannelInfo",
+          "show_as": "OUTPUT_PIN",
+          "can_show_as": "OUTPUT_PIN_OR_PROPERTY"
+        }
+      ]
+    },
+    {
+      "class_name": "DMAWrite",
+      "display_name": "DMA Write",
+      "contents_type": "Job",
+      "description": "Sends received YCbCr frame to the specified channel",
+      "pins": [
+        {
+          "name": "Thread",
+          "type_name": "nos.exe",
+          "show_as": "INPUT_PIN",
+          "can_show_as": "INPUT_PIN_ONLY"
+        },
+        {
+          "name": "Channel",
+          "type_name": "bluefish444.ChannelInfo",
+          "show_as": "INPUT_PIN",
+          "can_show_as": "INPUT_PIN_ONLY"
+        },
+        {
+          "name": "Input",
+          "type_name": "nos.sys.vulkan.Buffer",
+          "show_as": "INPUT_PIN",
+          "can_show_as": "INPUT_PIN_ONLY"
+        }
+      ]
+    },
+    {
+      "class_name": "WaitVBL",
+      "display_name": "Wait VBL",
+      "contents_type": "Job",
+      "description": "",
+      "pins": [
+        {
+          "name": "Thread",
+          "type_name": "nos.exe",
+          "show_as": "INPUT_PIN",
+          "can_show_as": "INPUT_PIN_ONLY"
+        },
+        {
+          "name": "VBL",
+          "type_name": "nos.exe",
+          "show_as": "OUTPUT_PIN",
+          "can_show_as": "OUTPUT_PIN_ONLY"
+        },
+        {
+          "name": "Channel",
+          "type_name": "bluefish444.ChannelInfo",
+          "show_as": "INPUT_PIN",
+          "can_show_as": "INPUT_PIN_ONLY"
+        }
+      ]
+    }
+  ]
+}

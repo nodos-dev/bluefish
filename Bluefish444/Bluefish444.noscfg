@@ -1,0 +1,40 @@
+{
+    "info": {
+        "id": {
+            "name": "bluefish444",
+            "version": "1.0.0"
+        },
+        "description": "Nodes for video I/O with Bluefish hardware",
+        "display_name": "Bluefish444",
+        "dependencies": [
+            {
+                "name": "nos.sys.vulkan",
+                "version": "3.0.0"
+            }
+        ]
+    },
+    "node_definitions": [
+        "Config/BluefishNodes.nosdef"
+    ],
+    "custom_types": [
+        "Config/BluefishTypes.fbs"
+    ],
+    "binary_path": "Binaries/Bluefish444",
+    "associated_nodes": [
+        {
+            "category": "Device|Bluefish444",
+            "class_name": "Channel",
+            "display_name": "Channel"
+        },
+        {
+            "category": "Device|Bluefish444",
+            "class_name": "DMAWrite",
+            "display_name": "DMA Write"
+        },
+        {
+          "category": "Device|Bluefish444",
+          "class_name": "WaitVBL",
+          "display_name": "WaitVBL"
+        }
+    ]
+}
