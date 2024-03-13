@@ -155,7 +155,7 @@ struct ChannelNode : nos::NodeContext
 			nosEngine.LogI("Route output %s with video mode %s", channelStr.c_str(), modeStr.c_str());
 		}
 		
-		if (!device->RouteSignal(channel, mode))
+		if (BERR_NO_ERROR == device->RouteSignal(channel, mode))
 			UpdateStatus(nos::fb::NodeStatusMessageType::INFO, channelStr + " " + modeStr);
 		else
 			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to open channel " + channelStr);

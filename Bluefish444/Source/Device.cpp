@@ -50,6 +50,7 @@ BluefishDevice::BluefishDevice(BLUE_S32 deviceId, BErr& error) : Id(deviceId)
 		return;
 	bfcUtilsGetDeviceInfo(Id, &Info);
 	bfcSetCardProperty32(Instance, VIDEO_BLACKGENERATOR, ENUM_BLACKGENERATOR_OFF);
+	bfcSetCardProperty32(Instance, VIDEO_IMAGE_ORIENTATION, ImageOrientation_Normal);
 }
 
 BluefishDevice::~BluefishDevice()
@@ -90,34 +91,35 @@ BErr BluefishDevice::RouteSignal(EBlueVideoChannel channel, EVideoModeExt mode)
 	else
 	{
 		auto setup = bfcUtilsGetDefaultSetupInfoOutput(channel, mode);
+		setup.MemoryFormat = MEM_FMT_2VUY;
+		setup.VideoEngine = VIDEO_ENGINE_FRAMESTORE;
+		setup.TransportSampling = Signal_FormatType_422;
 		err = bfcUtilsValidateSetupInfo(&setup);
 		if (BERR_NO_ERROR != err)
 			return err;
 		err = bfcUtilsSetupOutput(Instance, &setup);
+		bfcSetCardProperty32(Instance, DEFAULT_VIDEO_OUTPUT_CHANNEL, channel);
 	}
 	return err;
 }
 
-bool BluefishDevice::DMAWriteFrame(uint32_t bufferId, uint8_t* buffer, uint32_t size) const
+bool BluefishDevice::DMAWriteFrame(uint32_t bufferId, uint8_t* buffer, uint32_t size, EBlueVideoChannel channel) const
 {
-	auto videoSyncObject = bfcSyncInfoCreate(Instance);
-	auto bytesCopied = bfcDmaWriteToCardAsync(Instance, buffer, size, videoSyncObject, BlueImage_VBI_DMABuffer(bufferId, BLUE_DMA_DATA_TYPE_IMAGE_FRAME), 0);
-	if(bytesCopied != 0)
+	auto ret = bfcDmaWriteToCardAsync(Instance, buffer, size, nullptr, BlueImage_DMABuffer(bufferId, BLUE_DMA_DATA_TYPE_IMAGE_FRAME), 0);
+	if(ret < 0)
 	{
-		nosEngine.LogE("BluefishDevice: Async DMA Write did not return 0!");
+		nosEngine.LogE("BluefishDevice: Sync DMA Write returned with error code %d", ret);
 		return false;
 	}
-
-	// Now wait for, and check all the Dma transfers have completed properly
-	bytesCopied = bfcSyncInfoWait(Instance, videoSyncObject, 100);
-	if(bytesCopied == BERR_TIMEOUT)
-		nosEngine.LogE("BluefishDevice: Timeout when DMAWriteFrame!");
-	else if(bytesCopied <= 0)
-		nosEngine.LogE("BluefishDevice: Error in DMA write: %d", bytesCopied);
 	
 	// Tell the card to playback this frame at the next interrupt - using this macros tells the card to playback, Image, VBI/Vanc and Hanc data.
-	bfcRenderBufferUpdate(Instance, BlueBuffer_Image_VBI(bufferId));
-	return true;
+	auto err = bfcRenderBufferUpdate(Instance, BlueBuffer_Image(bufferId));
+	return err == BERR_NO_ERROR;
+}
+
+void BluefishDevice::WaitForOutputVBI(unsigned long& fieldCount, EBlueVideoChannel channel) const
+{
+	bfcWaitVideoOutputSync(Instance, UPD_FMT_FRAME, &fieldCount);
 }
 
 std::shared_ptr<BluefishDevice> BluefishDevice::GetDevice(std::string const& serial)

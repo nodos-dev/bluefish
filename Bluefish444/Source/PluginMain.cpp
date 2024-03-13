@@ -1,6 +1,8 @@
 #include <Nodos/PluginAPI.h>
 #include <Nodos/Helpers.hpp>
 
+#include <nosVulkanSubsystem/nosVulkanSubsystem.h>
+
 NOS_INIT()
 
 struct nosVulkanSubsystem* nosVulkan = nullptr;
@@ -33,6 +35,10 @@ NOSAPI_ATTR nosResult NOSAPI_CALL nosExportNodeFunctions(size_t* outCount, nosNo
 	NOS_RETURN_ON_FAILURE(result, RegisterChannelNode(outFunctions[static_cast<int>(Nodes::Channel)]));
 	NOS_RETURN_ON_FAILURE(result, RegisterWaitVBLNode(outFunctions[static_cast<int>(Nodes::WaitVBL)]));
 	NOS_RETURN_ON_FAILURE(result, RegisterDMAWriteNode(outFunctions[static_cast<int>(Nodes::DMAWrite)]));
+
+	nosSubsystemContext nosVulkanCtx;
+	NOS_RETURN_ON_FAILURE(result, nosEngine.RequestSubsystem2(NOS_NAME("nos.sys.vulkan"), NOS_VULKAN_SUBSYSTEM_VERSION_MAJOR, NOS_VULKAN_SUBSYSTEM_VERSION_MINOR, &nosVulkanCtx))
+	nosVulkan = static_cast<nosVulkanSubsystem*>(nosVulkanCtx.SubsystemPtr);
     return result;
 }
 

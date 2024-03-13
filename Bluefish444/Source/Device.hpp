@@ -32,11 +32,13 @@ public:
 	bool CanChannelDoInput(EBlueVideoChannel channel) const;
 	blue_setup_info GetRecommendedSetupInfoForInput(EBlueVideoChannel channel, BErr& err) const;
     BErr RouteSignal(EBlueVideoChannel channel, EVideoModeExt mode);
-	bool DMAWriteFrame(uint32_t bufferId, uint8_t* buffer, uint32_t size) const;
+	bool DMAWriteFrame(uint32_t bufferId, uint8_t* buffer, uint32_t size, EBlueVideoChannel channel) const;
+	void WaitForOutputVBI(unsigned long& fieldCount, EBlueVideoChannel channel) const;
 	
 	std::string GetSerial() const;
 	BLUE_S32 GetId() const { return Id; }
 	std::string GetName() const;
+	blue_device_info const& GetInfo() const { return Info; }
 private:
 	inline static std::unordered_map<std::string, std::shared_ptr<BluefishDevice>> Devices = {};
 
