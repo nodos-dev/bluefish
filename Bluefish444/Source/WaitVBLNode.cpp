@@ -35,7 +35,7 @@ struct WaitVBLNodeContext : nos::NodeContext
 		if (!device)
 			return NOS_RESULT_FAILED;
 		auto channel = static_cast<EBlueVideoChannel>(channelInfo->channel()->id());
-		device->WaitForOutputVBI(FieldCount, channel);
+		device->WaitForOutputVBI(channel, FieldCount);
 		return NOS_RESULT_SUCCESS;
 	}
 

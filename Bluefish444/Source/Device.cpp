@@ -75,51 +75,44 @@ blue_setup_info BluefishDevice::GetRecommendedSetupInfoForInput(EBlueVideoChanne
 	return setup;
 }
 
-BErr BluefishDevice::RouteSignal(EBlueVideoChannel channel, EVideoModeExt mode)
+BErr BluefishDevice::OpenChannel(EBlueVideoChannel channel, EVideoModeExt mode)
 {
-	BErr err{};
-	if (IsInputChannel(channel))
-	{
-		auto setup = GetRecommendedSetupInfoForInput(channel, err);
-		if (BERR_NO_ERROR != err)
-			return err;
-		err = bfcUtilsValidateSetupInfo(&setup);
-		if (BERR_NO_ERROR != err)
-			return err;
-		err = bfcUtilsSetupInput(Instance, &setup);
-	}
-	else
-	{
-		auto setup = bfcUtilsGetDefaultSetupInfoOutput(channel, mode);
-		setup.MemoryFormat = MEM_FMT_2VUY;
-		setup.VideoEngine = VIDEO_ENGINE_FRAMESTORE;
-		setup.TransportSampling = Signal_FormatType_422;
-		err = bfcUtilsValidateSetupInfo(&setup);
-		if (BERR_NO_ERROR != err)
-			return err;
-		err = bfcUtilsSetupOutput(Instance, &setup);
-		bfcSetCardProperty32(Instance, DEFAULT_VIDEO_OUTPUT_CHANNEL, channel);
-	}
-	return err;
+	CloseChannel(channel);
+	BErr error;
+	auto chObject = std::make_unique<Channel>(this, channel, mode, error);
+	if (BERR_NO_ERROR != error)
+		return error;
+	Channels[channel] = std::move(chObject);
+	return error;
 }
 
-bool BluefishDevice::DMAWriteFrame(uint32_t bufferId, uint8_t* buffer, uint32_t size, EBlueVideoChannel channel) const
+void BluefishDevice::CloseChannel(EBlueVideoChannel channel)
 {
-	auto ret = bfcDmaWriteToCardAsync(Instance, buffer, size, nullptr, BlueImage_DMABuffer(bufferId, BLUE_DMA_DATA_TYPE_IMAGE_FRAME), 0);
-	if(ret < 0)
+	auto it = Channels.find(channel);
+	if (it != Channels.end())
+		Channels.erase(it);
+}
+
+bool BluefishDevice::DMAWriteFrame(EBlueVideoChannel channel, uint32_t bufferId, uint8_t* buffer, uint32_t size) const
+{
+	auto it = Channels.find(channel);
+	if (it == Channels.end())
 	{
-		nosEngine.LogE("BluefishDevice: Sync DMA Write returned with error code %d", ret);
+		nosEngine.LogE("BluefishDevice DMAWrite: Channel %s not open!", bfcUtilsGetStringForVideoChannel(channel));
 		return false;
 	}
-	
-	// Tell the card to playback this frame at the next interrupt - using this macros tells the card to playback, Image, VBI/Vanc and Hanc data.
-	auto err = bfcRenderBufferUpdate(Instance, BlueBuffer_Image(bufferId));
-	return err == BERR_NO_ERROR;
+	return it->second->DMAWriteFrame(bufferId, buffer, size);
 }
 
-void BluefishDevice::WaitForOutputVBI(unsigned long& fieldCount, EBlueVideoChannel channel) const
+void BluefishDevice::WaitForOutputVBI(EBlueVideoChannel channel, unsigned long& fieldCount) const
 {
-	bfcWaitVideoOutputSync(Instance, UPD_FMT_FRAME, &fieldCount);
+	auto it = Channels.find(channel);
+	if (it == Channels.end())
+	{
+		nosEngine.LogE("BluefishDevice DMAWrite: Channel %s not open!", bfcUtilsGetStringForVideoChannel(channel));
+		return;
+	}
+	it->second->WaitForOutputVBI(fieldCount);
 }
 
 std::shared_ptr<BluefishDevice> BluefishDevice::GetDevice(std::string const& serial)
@@ -162,6 +155,64 @@ std::string BluefishDevice::GetSerial() const
 std::string BluefishDevice::GetName() const
 {
 	return bfcUtilsGetStringForCardType(Info.CardType);
+}
+
+Channel::Channel(BluefishDevice* device, EBlueVideoChannel channel, EVideoModeExt mode, BErr& err)
+	: Device(device)
+{
+	Instance = bfcFactory();
+	err = bfcAttach(Instance, Device->GetId());
+	if (BERR_NO_ERROR != err)
+		return;
+	if (IsInputChannel(channel))
+	{
+		auto setup = device->GetRecommendedSetupInfoForInput(channel, err);
+		if (BERR_NO_ERROR != err)
+			return;
+		err = bfcUtilsValidateSetupInfo(&setup);
+		if (BERR_NO_ERROR != err)
+			return;
+		err = bfcUtilsSetupInput(Instance, &setup);
+	}
+	else
+	{
+		auto setup = bfcUtilsGetDefaultSetupInfoOutput(channel, mode);
+		setup.MemoryFormat = MEM_FMT_2VUY;
+		setup.VideoEngine = VIDEO_ENGINE_FRAMESTORE;
+		setup.TransportSampling = Signal_FormatType_422;
+		err = bfcUtilsValidateSetupInfo(&setup);
+		if (BERR_NO_ERROR != err)
+			return;
+		err = bfcUtilsSetupOutput(Instance, &setup);
+	}
+}
+
+Channel::~Channel()
+{
+	if (!Instance)
+		return;
+	if (auto err = bfcDetach(Instance))
+		nosEngine.LogE("Error during detach: %s", bfcUtilsGetStringForBErr(err));
+	bfcDestroy(Instance);
+}
+
+bool Channel::DMAWriteFrame(uint32_t bufferId, uint8_t* buffer, uint32_t size) const
+{
+	auto ret = bfcDmaWriteToCardAsync(Instance, buffer, size, nullptr, BlueImage_DMABuffer(bufferId, BLUE_DMA_DATA_TYPE_IMAGE_FRAME), 0);
+	if(ret < 0)
+	{
+		nosEngine.LogE("Bluefish: Sync DMA Write returned with error code %d", ret);
+		return false;
+	}
+	
+	// Tell the card to playback this frame at the next interrupt - using this macros tells the card to playback, Image, VBI/Vanc and Hanc data.
+	auto err = bfcRenderBufferUpdate(Instance, BlueBuffer_Image(bufferId));
+	return err == BERR_NO_ERROR;
+}
+
+void Channel::WaitForOutputVBI(unsigned long& fieldCount) const
+{
+	bfcWaitVideoOutputSync(Instance, UPD_FMT_FRAME, &fieldCount);
 }
 
 

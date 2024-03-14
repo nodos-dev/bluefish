@@ -31,9 +31,10 @@ public:
 
 	bool CanChannelDoInput(EBlueVideoChannel channel) const;
 	blue_setup_info GetRecommendedSetupInfoForInput(EBlueVideoChannel channel, BErr& err) const;
-    BErr RouteSignal(EBlueVideoChannel channel, EVideoModeExt mode);
-	bool DMAWriteFrame(uint32_t bufferId, uint8_t* buffer, uint32_t size, EBlueVideoChannel channel) const;
-	void WaitForOutputVBI(unsigned long& fieldCount, EBlueVideoChannel channel) const;
+    BErr OpenChannel(EBlueVideoChannel channel, EVideoModeExt mode);
+	void CloseChannel(EBlueVideoChannel channel);
+	bool DMAWriteFrame(EBlueVideoChannel channel, uint32_t bufferId, uint8_t* buffer, uint32_t size) const;
+	void WaitForOutputVBI(EBlueVideoChannel channel, unsigned long& fieldCount) const;
 	
 	std::string GetSerial() const;
 	BLUE_S32 GetId() const { return Id; }
@@ -45,6 +46,24 @@ private:
 	BLUEVELVETC_HANDLE Instance = nullptr;
 	BLUE_S32 Id = 0;
 	blue_device_info Info{};
+
+	std::unordered_map<EBlueVideoChannel, std::unique_ptr<class Channel>> Channels;
+};
+
+class Channel
+{
+public:
+	Channel(BluefishDevice* device, EBlueVideoChannel channel, EVideoModeExt mode, BErr& err);
+	~Channel();
+
+	Channel(Channel const&) = delete;
+	
+	bool DMAWriteFrame(uint32_t bufferId, uint8_t* buffer, uint32_t size) const;
+	void WaitForOutputVBI(unsigned long& fieldCount) const;
+	
+protected:
+	BluefishDevice* Device;
+	BLUEVELVETC_HANDLE Instance = nullptr;
 };
 
 inline void ReplaceString(std::string &str, const std::string &toReplace, const std::string &replacement) {

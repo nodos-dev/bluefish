@@ -46,6 +46,7 @@ struct ChannelNode : nos::NodeContext
 
 	~ChannelNode() override
 	{
+		CloseChannel();
 	}
 
 	void OnNodeMenuRequested(const nosContextMenuRequest* request) override
@@ -155,7 +156,7 @@ struct ChannelNode : nos::NodeContext
 			nosEngine.LogI("Route output %s with video mode %s", channelStr.c_str(), modeStr.c_str());
 		}
 		
-		if (BERR_NO_ERROR == device->RouteSignal(channel, mode))
+		if (BERR_NO_ERROR == device->OpenChannel(channel, mode))
 			UpdateStatus(nos::fb::NodeStatusMessageType::INFO, channelStr + " " + modeStr);
 		else
 			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to open channel " + channelStr);
@@ -163,7 +164,15 @@ struct ChannelNode : nos::NodeContext
 
 	void CloseChannel()
 	{
-		
+		if (!ChannelInfo.device || !ChannelInfo.channel)
+			return;
+		auto device = BluefishDevice::GetDevice(ChannelInfo.device->serial);
+		if (!device)
+		{
+			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to find bluefish444 device:" + ChannelInfo.device->serial);
+			return;
+		}
+		device->CloseChannel(static_cast<EBlueVideoChannel>(ChannelInfo.channel->id));
 	}
 
 	void UpdateStatus(nos::fb::NodeStatusMessageType type, std::string text)
