@@ -85,9 +85,9 @@ struct DeviceId FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_SERIAL) &&
+           VerifyOffset(verifier, VT_SERIAL) &&
            verifier.VerifyString(serial()) &&
-           VerifyOffsetRequired(verifier, VT_NAME) &&
+           VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
            verifier.EndTable();
   }
@@ -113,8 +113,6 @@ struct DeviceIdBuilder {
   ::flatbuffers::Offset<DeviceId> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<DeviceId>(end);
-    fbb_.Required(o, DeviceId::VT_SERIAL);
-    fbb_.Required(o, DeviceId::VT_NAME);
     return o;
   }
 };
@@ -201,7 +199,7 @@ struct ChannelId FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_ID, 4) &&
-           VerifyOffsetRequired(verifier, VT_NAME) &&
+           VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
            verifier.EndTable();
   }
@@ -227,7 +225,6 @@ struct ChannelIdBuilder {
   ::flatbuffers::Offset<ChannelId> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<ChannelId>(end);
-    fbb_.Required(o, ChannelId::VT_NAME);
     return o;
   }
 };
@@ -334,9 +331,9 @@ struct ChannelInfo FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_DEVICE) &&
+           VerifyOffset(verifier, VT_DEVICE) &&
            verifier.VerifyTable(device()) &&
-           VerifyOffsetRequired(verifier, VT_CHANNEL) &&
+           VerifyOffset(verifier, VT_CHANNEL) &&
            verifier.VerifyTable(channel()) &&
            VerifyOffset(verifier, VT_VIDEO_MODE_NAME) &&
            verifier.VerifyString(video_mode_name()) &&
@@ -371,8 +368,6 @@ struct ChannelInfoBuilder {
   ::flatbuffers::Offset<ChannelInfo> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<ChannelInfo>(end);
-    fbb_.Required(o, ChannelInfo::VT_DEVICE);
-    fbb_.Required(o, ChannelInfo::VT_CHANNEL);
     return o;
   }
 };
@@ -457,8 +452,8 @@ inline ::flatbuffers::Offset<DeviceId> CreateDeviceId(::flatbuffers::FlatBufferB
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TDeviceId* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _serial = _fbb.CreateString(_o->serial);
-  auto _name = _fbb.CreateString(_o->name);
+  auto _serial = _o->serial.empty() ? 0 : _fbb.CreateString(_o->serial);
+  auto _name = _o->name.empty() ? 0 : _fbb.CreateString(_o->name);
   return bluefish444::CreateDeviceId(
       _fbb,
       _serial,
@@ -499,7 +494,7 @@ inline ::flatbuffers::Offset<ChannelId> CreateChannelId(::flatbuffers::FlatBuffe
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TChannelId* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _id = _o->id;
-  auto _name = _fbb.CreateString(_o->name);
+  auto _name = _o->name.empty() ? 0 : _fbb.CreateString(_o->name);
   return bluefish444::CreateChannelId(
       _fbb,
       _id,

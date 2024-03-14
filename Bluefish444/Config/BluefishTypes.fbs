@@ -2,18 +2,18 @@
 namespace bluefish444;
 
 table DeviceId {
-    serial: string (required);
-    name: string (required);
+    serial: string;
+    name: string;
 }
 
 table ChannelId {
     id: int;
-    name: string (required);
+    name: string;
 }
 
 table ChannelInfo {
-    device: DeviceId (required);
-    channel: ChannelId (required);
+    device: DeviceId;
+    channel: ChannelId;
     video_mode_name: string;
     video_mode: int;
 }

@@ -98,7 +98,7 @@ struct DMAWriteNodeContext : nos::NodeContext
 
 nosResult RegisterDMAWriteNode(nosNodeFunctions* outFunctions)
 {
-	NOS_BIND_NODE_CLASS(NOS_NAME_STATIC("bluefish444.DMAWrite"), DMAWriteNodeContext, outFunctions)
+	NOS_BIND_NODE_CLASS(NOS_NAME("bluefish444.DMAWrite"), DMAWriteNodeContext, outFunctions)
 	return NOS_RESULT_SUCCESS;
 }
 }

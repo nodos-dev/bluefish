@@ -15,12 +15,14 @@ enum class Nodes : int
 	Channel = 0,
 	WaitVBL,
 	DMAWrite,
+	OutputNode,
 	Count
 };
 
 nosResult RegisterChannelNode(nosNodeFunctions*);
 nosResult RegisterWaitVBLNode(nosNodeFunctions*);
 nosResult RegisterDMAWriteNode(nosNodeFunctions*);
+nosResult RegisterOutputNode(nosNodeFunctions*);
 
 extern "C"
 {
@@ -35,6 +37,7 @@ NOSAPI_ATTR nosResult NOSAPI_CALL nosExportNodeFunctions(size_t* outCount, nosNo
 	NOS_RETURN_ON_FAILURE(result, RegisterChannelNode(outFunctions[static_cast<int>(Nodes::Channel)]));
 	NOS_RETURN_ON_FAILURE(result, RegisterWaitVBLNode(outFunctions[static_cast<int>(Nodes::WaitVBL)]));
 	NOS_RETURN_ON_FAILURE(result, RegisterDMAWriteNode(outFunctions[static_cast<int>(Nodes::DMAWrite)]));
+	NOS_RETURN_ON_FAILURE(result, RegisterOutputNode(outFunctions[static_cast<int>(Nodes::OutputNode)]));
 
 	nosSubsystemContext nosVulkanCtx;
 	NOS_RETURN_ON_FAILURE(result, nosEngine.RequestSubsystem2(NOS_NAME("nos.sys.vulkan"), NOS_VULKAN_SUBSYSTEM_VERSION_MAJOR, NOS_VULKAN_SUBSYSTEM_VERSION_MINOR, &nosVulkanCtx))

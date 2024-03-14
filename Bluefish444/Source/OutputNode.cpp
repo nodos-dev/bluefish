@@ -8,12 +8,12 @@
 namespace bf
 {
 
-struct ChannelNode : nos::NodeContext
+struct OutputNode : nos::NodeContext
 {
 	nosUUID ChannelPinId{};
 	bluefish444::TChannelInfo ChannelInfo{};
 	
-	ChannelNode(const nosFbNode* node) : NodeContext(node)
+	OutputNode(const nosFbNode* node) : NodeContext(node)
 	{
 		auto err = BluefishDevice::InitializeDevices();
 		if (BERR_NO_ERROR != err)
@@ -44,7 +44,7 @@ struct ChannelNode : nos::NodeContext
 		}
 	}
 
-	~ChannelNode() override
+	~OutputNode() override
 	{
 		CloseChannel();
 	}
@@ -54,7 +54,6 @@ struct ChannelNode : nos::NodeContext
 		flatbuffers::FlatBufferBuilder fbb;
 		
 		std::vector<flatbuffers::Offset<nos::ContextMenuItem>> items, devices;
-		EnumerateInputChannels(fbb, devices);
 		EnumerateOutputChannels(fbb, devices);
 		if (!devices.empty())
 			items.push_back(nos::CreateContextMenuItemDirect(fbb, "Open Channel", 0, &devices));
@@ -188,9 +187,9 @@ struct ChannelNode : nos::NodeContext
 	}
 };
 
-nosResult RegisterChannelNode(nosNodeFunctions* outFunctions)
+nosResult RegisterOutputNode(nosNodeFunctions* outFunctions)
 {
-	NOS_BIND_NODE_CLASS(NOS_NAME("bluefish444.Channel"), ChannelNode, outFunctions)
+	NOS_BIND_NODE_CLASS(NOS_NAME("bluefish444.Output"), OutputNode, outFunctions)
 	return NOS_RESULT_SUCCESS;
 }
 

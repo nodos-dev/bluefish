@@ -44,7 +44,7 @@ struct WaitVBLNodeContext : nos::NodeContext
 
 nosResult RegisterWaitVBLNode(nosNodeFunctions* outFunctions)
 {
-	NOS_BIND_NODE_CLASS(NOS_NAME_STATIC("bluefish444.WaitVBL"), WaitVBLNodeContext, outFunctions)
+	NOS_BIND_NODE_CLASS(NOS_NAME("bluefish444.WaitVBL"), WaitVBLNodeContext, outFunctions)
 	return NOS_RESULT_SUCCESS;
 }
 
