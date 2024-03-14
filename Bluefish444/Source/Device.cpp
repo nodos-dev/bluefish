@@ -115,6 +115,14 @@ void BluefishDevice::WaitForOutputVBI(EBlueVideoChannel channel, unsigned long& 
 	it->second->WaitForOutputVBI(fieldCount);
 }
 
+std::array<uint32_t, 2> BluefishDevice::GetDeltaSeconds(EBlueVideoChannel channel) const
+{
+	auto it = Channels.find(channel);
+	if (it == Channels.end())
+		return {0, 0};
+	return it->second->GetDeltaSeconds();
+}
+
 std::shared_ptr<BluefishDevice> BluefishDevice::GetDevice(std::string const& serial)
 {
 	auto it = Devices.find(serial);
@@ -173,6 +181,7 @@ Channel::Channel(BluefishDevice* device, EBlueVideoChannel channel, EVideoModeEx
 		if (BERR_NO_ERROR != err)
 			return;
 		err = bfcUtilsSetupInput(Instance, &setup);
+		mode = setup.VideoModeExt;
 	}
 	else
 	{
@@ -185,6 +194,9 @@ Channel::Channel(BluefishDevice* device, EBlueVideoChannel channel, EVideoModeEx
 			return;
 		err = bfcUtilsSetupOutput(Instance, &setup);
 	}
+	uint32_t dividend = bfcUtilsGetFpsForVideoMode(mode) * (bfcUtilsIsVideoMode1001Framerate(mode) ? 1000 : 1);
+	uint32_t divisor = bfcUtilsIsVideoMode1001Framerate(mode) ? 1001 : 1;
+	DeltaSeconds = {dividend, divisor};
 }
 
 Channel::~Channel()

@@ -18,12 +18,6 @@ struct DMAWriteNodeContext : nos::NodeContext
 
 	nosResult ExecuteNode(const nosNodeExecuteArgs* args) override
 	{
-		nosScheduleNodeParams schedule{
-			.NodeId = NodeId,
-			.AddScheduleCount = 1
-		};
-		nosEngine.ScheduleNode(&schedule);
-
 		bluefish444::ChannelInfo* channelInfo = nullptr;
 		nosResourceShareInfo inputBuffer{};
 		for (size_t i = 0; i < args->PinCount; ++i)
@@ -47,9 +41,13 @@ struct DMAWriteNodeContext : nos::NodeContext
 		auto channel = static_cast<EBlueVideoChannel>(channelInfo->channel()->id());
 		auto videoMode = static_cast<EVideoModeExt>(channelInfo->video_mode());
 		std::string channelStr = bfcUtilsGetStringForVideoChannel(channel);
-
-		BLUE_U32 width, height, bytesPerLine, bytesPerFrame, goldenBytes;
-		bfcGetVideoInfo(videoMode, UPD_FMT_FRAME, MEM_FMT_YUVS, &width, &height, &bytesPerLine, &bytesPerFrame, &goldenBytes);
+		auto d = device->GetDeltaSeconds(channel);
+		nosVec2u newDeltaSeconds = { d[0], d[1] };
+		if (memcmp(&newDeltaSeconds, &DeltaSeconds, sizeof(nosVec2u)) != 0)
+		{
+			// TODO: Recompilation needed. Nodos should call our GetScheduleInfo function.
+			DeltaSeconds = newDeltaSeconds;
+		}
 
 		nosCmd cmd;
 		nosVulkan->Begin("Flush Before Bluefish DMA Write", &cmd);
@@ -69,7 +67,13 @@ struct DMAWriteNodeContext : nos::NodeContext
 		}
 
 		BufferId = (BufferId + 1) % 4;
-		
+
+		nosScheduleNodeParams schedule{
+			.NodeId = NodeId,
+			.AddScheduleCount = 1
+		};
+		nosEngine.ScheduleNode(&schedule);
+
 		return NOS_RESULT_SUCCESS;
 	}
  
@@ -77,7 +81,7 @@ struct DMAWriteNodeContext : nos::NodeContext
 	{
 		*out = nosScheduleInfo {
 			.Importance = 1,
-			.DeltaSeconds = { 1001, 60000 },
+			.DeltaSeconds = DeltaSeconds,
 			.Type = NOS_SCHEDULE_TYPE_ON_DEMAND,
 		};
 	}
@@ -88,6 +92,7 @@ struct DMAWriteNodeContext : nos::NodeContext
 		nosEngine.ScheduleNode(&schedule);
 	}
 
+	nosVec2u DeltaSeconds{};
 	BLUE_U32 BufferId = 0;
 };
 

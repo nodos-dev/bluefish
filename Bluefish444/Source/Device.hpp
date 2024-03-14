@@ -14,6 +14,7 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include <array>
 
 namespace bf
 {
@@ -35,6 +36,7 @@ public:
 	void CloseChannel(EBlueVideoChannel channel);
 	bool DMAWriteFrame(EBlueVideoChannel channel, uint32_t bufferId, uint8_t* buffer, uint32_t size) const;
 	void WaitForOutputVBI(EBlueVideoChannel channel, unsigned long& fieldCount) const;
+	std::array<uint32_t, 2> GetDeltaSeconds(EBlueVideoChannel channel) const;
 	
 	std::string GetSerial() const;
 	BLUE_S32 GetId() const { return Id; }
@@ -60,10 +62,12 @@ public:
 	
 	bool DMAWriteFrame(uint32_t bufferId, uint8_t* buffer, uint32_t size) const;
 	void WaitForOutputVBI(unsigned long& fieldCount) const;
+	std::array<uint32_t, 2> GetDeltaSeconds() const { return DeltaSeconds; }
 	
 protected:
 	BluefishDevice* Device;
 	BLUEVELVETC_HANDLE Instance = nullptr;
+	std::array<uint32_t, 2> DeltaSeconds;
 };
 
 inline void ReplaceString(std::string &str, const std::string &toReplace, const std::string &replacement) {
