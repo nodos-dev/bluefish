@@ -21,7 +21,7 @@ struct ChannelNode : nos::NodeContext
 			SetNodeStatusMessage(std::string("Error during device initialization: ") + bfcUtilsGetStringForBErr(err), nos::fb::NodeStatusMessageType::FAILURE);
 			return;
 		}
-		
+		LoadNode(node);
 	}
 	
 	void LoadNode(const nosFbNode* node)
