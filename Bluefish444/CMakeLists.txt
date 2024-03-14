@@ -14,4 +14,10 @@ endif()
 get_targets(BLUEFISH_EXTERNAL_TARGETS "${CMAKE_CURRENT_BINARY_DIR}/External/BF444")
 group_targets("${BLUEFISH_EXTERNAL_TARGETS}" "External")
 
-add_folder_as_plugin_project("Bluefish444" "bf444" "")
+set(INCLUDE_FOLDERS "")
+# For nodos in solution build
+if(WITH_NODOS)
+	list(APPEND INCLUDE_FOLDERS "${CACHED_NOS_SYS_VULKAN_INCLUDES}")
+endif()
+
+add_folder_as_plugin_project("Bluefish444" "bf444" "${INCLUDE_FOLDERS}")
