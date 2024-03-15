@@ -196,7 +196,7 @@ Channel::Channel(BluefishDevice* device, EBlueVideoChannel channel, EVideoModeEx
 	}
 	uint32_t dividend = bfcUtilsGetFpsForVideoMode(mode) * (bfcUtilsIsVideoMode1001Framerate(mode) ? 1000 : 1);
 	uint32_t divisor = bfcUtilsIsVideoMode1001Framerate(mode) ? 1001 : 1;
-	DeltaSeconds = {dividend, divisor};
+	DeltaSeconds = {divisor, dividend};
 }
 
 Channel::~Channel()
