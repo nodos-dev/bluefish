@@ -16,7 +16,7 @@
     },
     {
       "class_name": "DMAWrite",
-      "display_name": "DMA Write",
+      "display_name": "BF DMA Write",
       "contents_type": "Job",
       "description": "Sends received YCbCr frame to the specified channel",
       "pins": [
@@ -42,7 +42,7 @@
     },
     {
       "class_name": "WaitVBL",
-      "display_name": "Wait VBL",
+      "display_name": "BF Wait VBL",
       "contents_type": "Job",
       "description": "",
       "pins": [

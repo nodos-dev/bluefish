@@ -454,6 +454,7 @@
       {
         "id": "3351bb93-f88f-495d-90aa-0dc40df93e0b",
         "name": "DMAWrite",
+        "display_name": "BF DMA Write",
         "class_name": "bluefish444.DMAWrite",
         "pins": [
           {
@@ -528,7 +529,6 @@
         ],
         "orphan_state": { },
         "description": "Sends received YCbCr frame to the specified channel",
-        "display_name": "DMA Write",
         "template_parameters": []
       },
       {
@@ -926,6 +926,7 @@
       {
         "id": "baa59fcc-c8f5-418b-94b8-cd11de8a6d19",
         "name": "WaitVBL",
+        "display_name": "BF Wait VBL",
         "class_name": "bluefish444.WaitVBL",
         "pins": [
           {
@@ -992,7 +993,6 @@
         ],
         "orphan_state": { },
         "description": "",
-        "display_name": "Wait VBL",
         "template_parameters": []
       },
       {
