@@ -8,7 +8,7 @@
       "pins": [
         {
           "name": "Channel",
-          "type_name": "bluefish444.ChannelInfo",
+          "type_name": "nos.bluefish.ChannelInfo",
           "show_as": "OUTPUT_PIN",
           "can_show_as": "OUTPUT_PIN_OR_PROPERTY"
         }
@@ -28,7 +28,7 @@
         },
         {
           "name": "Channel",
-          "type_name": "bluefish444.ChannelInfo",
+          "type_name": "nos.bluefish.ChannelInfo",
           "show_as": "INPUT_PIN",
           "can_show_as": "INPUT_PIN_ONLY"
         },
@@ -60,7 +60,7 @@
         },
         {
           "name": "Channel",
-          "type_name": "bluefish444.ChannelInfo",
+          "type_name": "nos.bluefish.ChannelInfo",
           "show_as": "INPUT_PIN",
           "can_show_as": "INPUT_PIN_ONLY"
         }

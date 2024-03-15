@@ -4,7 +4,7 @@
 #include "Device.hpp"
 #include "BluefishTypes_generated.h"
 
-namespace bluefish444
+namespace nos::bluefish
 {
 struct ChannelInfo;
 }
@@ -20,12 +20,12 @@ struct WaitVBLNodeContext : nos::NodeContext
 
 	nosResult ExecuteNode(const nosNodeExecuteArgs* args) override
 	{
-		bluefish444::ChannelInfo* channelInfo = nullptr;
+		nos::bluefish::ChannelInfo* channelInfo = nullptr;
 		for (size_t i = 0; i < args->PinCount; ++i)
 		{
 			auto& pin = args->Pins[i];
 			if (pin.Name == NOS_NAME_STATIC("Channel"))
-				channelInfo = nos::InterpretPinValue<bluefish444::ChannelInfo>(*pin.Data);
+				channelInfo = nos::InterpretPinValue<nos::bluefish::ChannelInfo>(*pin.Data);
 		}
 		
 		if (!channelInfo->device() || !channelInfo->channel())
@@ -44,7 +44,7 @@ struct WaitVBLNodeContext : nos::NodeContext
 
 nosResult RegisterWaitVBLNode(nosNodeFunctions* outFunctions)
 {
-	NOS_BIND_NODE_CLASS(NOS_NAME("bluefish444.WaitVBL"), WaitVBLNodeContext, outFunctions)
+	NOS_BIND_NODE_CLASS(NOS_NAME("WaitVBL"), WaitVBLNodeContext, outFunctions)
 	return NOS_RESULT_SUCCESS;
 }
 

@@ -1,5 +1,5 @@
 
-namespace bluefish444;
+namespace nos.bluefish;
 
 table DeviceId {
     serial: string;

@@ -11,7 +11,7 @@ namespace bf
 struct OutputNode : nos::NodeContext
 {
 	nosUUID ChannelPinId{};
-	bluefish444::TChannelInfo ChannelInfo{};
+	nos::bluefish::TChannelInfo ChannelInfo{};
 	
 	OutputNode(const nosFbNode* node) : NodeContext(node)
 	{
@@ -28,14 +28,14 @@ struct OutputNode : nos::NodeContext
 	{
 		if (auto* pins = node->pins())
 		{
-			bluefish444::TChannelInfo info;
+			nos::bluefish::TChannelInfo info;
 			for (auto const* pin : *pins)
 			{
 				auto name = pin->name()->c_str();
 				if (0 == strcmp(name, "Channel"))
 				{
 					ChannelPinId = *pin->id();
-					flatbuffers::GetRoot<bluefish444::ChannelInfo>(pin->data()->data())->UnPackTo(&info);
+					flatbuffers::GetRoot<nos::bluefish::ChannelInfo>(pin->data()->data())->UnPackTo(&info);
 				}
 			}
 			if (info.device)
@@ -74,7 +74,7 @@ struct OutputNode : nos::NodeContext
 		auto device = BluefishDevice::GetDevice(command.DeviceId);
 		if (!device)
 		{
-			nosEngine.LogE("No such Bluefish444 device found: %d", command.DeviceId);
+			nosEngine.LogE("No such nos::bluefish device found: %d", command.DeviceId);
 			return;
 		}
 		bool input = IsInputChannel(command.Channel);
@@ -91,15 +91,15 @@ struct OutputNode : nos::NodeContext
 	    }
 		std::string pinName = "SingleLink " +  std::to_string(GetChannelNumber(command.Channel));
 	    
-        bluefish444::TChannelInfo channelPin{};
-	    bluefish444::TDeviceId d;
+        nos::bluefish::TChannelInfo channelPin{};
+	    nos::bluefish::TDeviceId d;
 	    d.serial = device->GetSerial();
 	    d.name = device->GetName();
-	    bluefish444::TChannelId c;
+	    nos::bluefish::TChannelId c;
 	    c.name = bfcUtilsGetStringForVideoChannel(command.Channel);
 	    c.id = static_cast<int>(command.Channel);
-        channelPin.device = std::make_unique<bluefish444::TDeviceId>(std::move(d));
-        channelPin.channel = std::make_unique<bluefish444::TChannelId>(std::move(c));
+        channelPin.device = std::make_unique<nos::bluefish::TDeviceId>(std::move(d));
+        channelPin.channel = std::make_unique<nos::bluefish::TChannelId>(std::move(c));
         channelPin.video_mode = static_cast<int>(command.VideoMode);
         channelPin.video_mode_name = bfcUtilsGetStringForVideoMode(command.VideoMode);
 		nosEngine.SetPinValue(ChannelPinId, nos::Buffer::From(channelPin));
@@ -115,13 +115,13 @@ struct OutputNode : nos::NodeContext
 	{
 		if (pinName == NOS_NAME("Channel"))
 		{
-			bluefish444::TChannelInfo newInfo;
-			flatbuffers::GetRoot<bluefish444::ChannelInfo>(value.Data)->UnPackTo(&newInfo);
+			nos::bluefish::TChannelInfo newInfo;
+			flatbuffers::GetRoot<nos::bluefish::ChannelInfo>(value.Data)->UnPackTo(&newInfo);
 			UpdateChannel(std::move(newInfo));
 		}
 	}
 
-	void UpdateChannel(bluefish444::TChannelInfo info)
+	void UpdateChannel(nos::bluefish::TChannelInfo info)
 	{
 		if (info == ChannelInfo)
 			return;
@@ -137,7 +137,7 @@ struct OutputNode : nos::NodeContext
 		auto device = BluefishDevice::GetDevice(ChannelInfo.device->serial);
 		if (!device)
 		{
-			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to find bluefish444 device:" + ChannelInfo.device->serial);
+			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to find nos::bluefish device:" + ChannelInfo.device->serial);
 			return;
 		}
 		EVideoModeExt mode = VID_FMT_EXT_INVALID;
@@ -168,7 +168,7 @@ struct OutputNode : nos::NodeContext
 		auto device = BluefishDevice::GetDevice(ChannelInfo.device->serial);
 		if (!device)
 		{
-			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to find bluefish444 device:" + ChannelInfo.device->serial);
+			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to find nos::bluefish device:" + ChannelInfo.device->serial);
 			return;
 		}
 		device->CloseChannel(static_cast<EBlueVideoChannel>(ChannelInfo.channel->id));
@@ -189,7 +189,7 @@ struct OutputNode : nos::NodeContext
 
 nosResult RegisterOutputNode(nosNodeFunctions* outFunctions)
 {
-	NOS_BIND_NODE_CLASS(NOS_NAME("bluefish444.Output"), OutputNode, outFunctions)
+	NOS_BIND_NODE_CLASS(NOS_NAME("Output"), OutputNode, outFunctions)
 	return NOS_RESULT_SUCCESS;
 }
 

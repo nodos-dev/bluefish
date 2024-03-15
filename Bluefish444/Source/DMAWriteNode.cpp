@@ -18,13 +18,13 @@ struct DMAWriteNodeContext : nos::NodeContext
 
 	nosResult ExecuteNode(const nosNodeExecuteArgs* args) override
 	{
-		bluefish444::ChannelInfo* channelInfo = nullptr;
+		nos::bluefish::ChannelInfo* channelInfo = nullptr;
 		nosResourceShareInfo inputBuffer{};
 		for (size_t i = 0; i < args->PinCount; ++i)
 		{
 			auto& pin = args->Pins[i];
 			if (pin.Name == NOS_NAME_STATIC("Channel"))
-				channelInfo = nos::InterpretPinValue<bluefish444::ChannelInfo>(*pin.Data);
+				channelInfo = nos::InterpretPinValue<nos::bluefish::ChannelInfo>(*pin.Data);
 			if (pin.Name == NOS_NAME_STATIC("Input"))
 				inputBuffer = nos::vkss::ConvertToResourceInfo(*nos::InterpretPinValue<nos::sys::vulkan::Buffer>(*pin.Data));
 		}
@@ -98,7 +98,7 @@ struct DMAWriteNodeContext : nos::NodeContext
 
 nosResult RegisterDMAWriteNode(nosNodeFunctions* outFunctions)
 {
-	NOS_BIND_NODE_CLASS(NOS_NAME("bluefish444.DMAWrite"), DMAWriteNodeContext, outFunctions)
+	NOS_BIND_NODE_CLASS(NOS_NAME("DMAWrite"), DMAWriteNodeContext, outFunctions)
 	return NOS_RESULT_SUCCESS;
 }
 }

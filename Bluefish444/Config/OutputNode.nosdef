@@ -2,7 +2,7 @@
   "nodes": [{
     "id": "dd9b57f7-c14d-45c3-8400-f96d21253644",
     "name": "Bluefish444 Output",
-    "class_name": "bluefish444.Output",
+    "class_name": "nos.bluefish.Output",
     "pins": [
       {
         "id": "473174c8-4332-4ca3-bf2e-a0450a2a06b7",
@@ -108,7 +108,7 @@
       {
         "id": "ccb57f60-e3fb-4a3e-86ce-a9c96cdffe2e",
         "name": "Channel",
-        "type_name": "bluefish444.ChannelInfo",
+        "type_name": "nos.bluefish.ChannelInfo",
         "show_as": "PROPERTY",
         "can_show_as": "PROPERTY_ONLY",
         "pin_category": "",
@@ -455,7 +455,7 @@
         "id": "3351bb93-f88f-495d-90aa-0dc40df93e0b",
         "name": "DMAWrite",
         "display_name": "BF DMA Write",
-        "class_name": "bluefish444.DMAWrite",
+        "class_name": "nos.bluefish.DMAWrite",
         "pins": [
           {
             "id": "5a9633f8-10b0-4c85-941d-2c2efbc04816",
@@ -477,7 +477,7 @@
           {
             "id": "21b2d642-9a70-4174-946d-c57ed6ee8a65",
             "name": "Channel",
-            "type_name": "bluefish444.ChannelInfo",
+            "type_name": "nos.bluefish.ChannelInfo",
             "show_as": "INPUT_PIN",
             "can_show_as": "INPUT_PIN_ONLY",
             "pin_category": "",
@@ -748,7 +748,7 @@
           {
             "id": "c750fd53-058a-4967-bdfa-67f391560a24",
             "name": "(Inner) Channel",
-            "type_name": "bluefish444.ChannelInfo",
+            "type_name": "nos.bluefish.ChannelInfo",
             "show_as": "INPUT_PIN",
             "can_show_as": "INPUT_PIN_OR_PROPERTY",
             "pin_category": "",
@@ -767,7 +767,7 @@
           {
             "id": "9e0690cd-2a55-45a5-ba66-a68137f62dd8",
             "name": "Channel",
-            "type_name": "bluefish444.ChannelInfo",
+            "type_name": "nos.bluefish.ChannelInfo",
             "show_as": "OUTPUT_PIN",
             "can_show_as": "OUTPUT_PIN_ONLY",
             "pin_category": "",
@@ -927,7 +927,7 @@
         "id": "baa59fcc-c8f5-418b-94b8-cd11de8a6d19",
         "name": "WaitVBL",
         "display_name": "BF Wait VBL",
-        "class_name": "bluefish444.WaitVBL",
+        "class_name": "nos.bluefish.WaitVBL",
         "pins": [
           {
             "id": "06030a8f-5c8c-4443-b137-bd2686fc1e19",
@@ -966,7 +966,7 @@
           {
             "id": "1753919d-cfd8-4317-bbbd-4dd035897774",
             "name": "Channel",
-            "type_name": "bluefish444.ChannelInfo",
+            "type_name": "nos.bluefish.ChannelInfo",
             "show_as": "INPUT_PIN",
             "can_show_as": "INPUT_PIN_ONLY",
             "pin_category": "",
