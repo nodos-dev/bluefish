@@ -75,7 +75,7 @@ struct ChannelNode : nos::NodeContext
 		auto device = BluefishDevice::GetDevice(command.DeviceId);
 		if (!device)
 		{
-			nosEngine.LogE("No such nos::bluefish device found: %d", command.DeviceId);
+			nosEngine.LogE("No such Bluefish444 device found: %d", command.DeviceId);
 			return;
 		}
 		bool input = IsInputChannel(command.Channel);
@@ -138,7 +138,7 @@ struct ChannelNode : nos::NodeContext
 		auto device = BluefishDevice::GetDevice(ChannelInfo.device->serial);
 		if (!device)
 		{
-			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to find nos::bluefish device:" + ChannelInfo.device->serial);
+			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to find Bluefish444 device:" + ChannelInfo.device->serial);
 			return;
 		}
 		EVideoModeExt mode = VID_FMT_EXT_INVALID;
@@ -169,7 +169,7 @@ struct ChannelNode : nos::NodeContext
 		auto device = BluefishDevice::GetDevice(ChannelInfo.device->serial);
 		if (!device)
 		{
-			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to find nos::bluefish device:" + ChannelInfo.device->serial);
+			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to find Bluefish444 device:" + ChannelInfo.device->serial);
 			return;
 		}
 		device->CloseChannel(static_cast<EBlueVideoChannel>(ChannelInfo.channel->id));

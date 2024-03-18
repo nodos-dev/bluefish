@@ -35,7 +35,15 @@ struct WaitVBLNodeContext : nos::NodeContext
 		if (!device)
 			return NOS_RESULT_FAILED;
 		auto channel = static_cast<EBlueVideoChannel>(channelInfo->channel()->id());
+		auto videoMode = static_cast<EVideoModeExt>(channelInfo->video_mode());
+		auto prev = FieldCount;
 		device->WaitForOutputVBI(channel, FieldCount);
+		auto diff = FieldCount - prev;
+		uint8_t isInterlaced = bfcUtilsIsVideoModeProgressive(videoMode);
+		if (diff > (1 + isInterlaced))
+		{
+			nosEngine.LogW("%s dropped %d frames", bfcUtilsGetStringForVideoChannel(channel), diff / (1 + isInterlaced));
+		}
 		return NOS_RESULT_SUCCESS;
 	}
 
