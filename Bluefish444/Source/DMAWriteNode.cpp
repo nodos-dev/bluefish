@@ -31,7 +31,7 @@ struct DMAWriteNodeContext : nos::NodeContext
 		
 		if (!inputBuffer.Memory.Handle)
 			return NOS_RESULT_FAILED;
-
+ 
 		if (!channelInfo->device() || !channelInfo->channel())
 			return NOS_RESULT_FAILED;
 
