@@ -39,7 +39,6 @@ struct DMAWriteNodeContext : nos::NodeContext
 		if (!device)
 			return NOS_RESULT_FAILED;
 		auto channel = static_cast<EBlueVideoChannel>(channelInfo->channel()->id());
-		auto videoMode = static_cast<EVideoModeExt>(channelInfo->video_mode());
 		std::string channelStr = bfcUtilsGetStringForVideoChannel(channel);
 		auto d = device->GetDeltaSeconds(channel);
 		nosVec2u newDeltaSeconds = { d[0], d[1] };

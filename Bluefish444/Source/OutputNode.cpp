@@ -77,18 +77,6 @@ struct OutputNode : nos::NodeContext
 			nosEngine.LogE("No such Bluefish444 device found: %d", command.DeviceId);
 			return;
 		}
-		bool input = IsInputChannel(command.Channel);
-	    if (input)
-	    {
-	    	BErr err{};
-	    	auto setup = device->GetRecommendedSetupInfoForInput(command.Channel, err);
-	    	command.VideoMode = setup.VideoModeExt;
-	    	if (setup.SignalLinkType != SIGNAL_LINK_TYPE_SINGLE_LINK)
-	    	{
-	    		nosEngine.LogE("Unable to open input channel: Only SingleLink is supported for now.");
-	    		return;
-	    	}
-	    }
 		std::string pinName = "SingleLink " +  std::to_string(GetChannelNumber(command.Channel));
 	    
         nos::bluefish::TChannelInfo channelPin{};
@@ -140,20 +128,12 @@ struct OutputNode : nos::NodeContext
 			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to find Bluefish444 device:" + ChannelInfo.device->serial);
 			return;
 		}
-		EVideoModeExt mode = VID_FMT_EXT_INVALID;
+		EVideoModeExt mode = static_cast<EVideoModeExt>(ChannelInfo.video_mode);
 		auto channel = static_cast<EBlueVideoChannel>(ChannelInfo.channel->id);
 		std::string channelStr = bfcUtilsGetStringForVideoChannel(channel);
 		std::string modeStr;
-		if (IsInputChannel(channel))
-		{
-			nosEngine.LogI("Route input %s", channelStr.c_str());
-		}
-		else
-		{
-			mode = static_cast<EVideoModeExt>(ChannelInfo.video_mode);
-			modeStr = bfcUtilsGetStringForVideoMode(mode);
-			nosEngine.LogI("Route output %s with video mode %s", channelStr.c_str(), modeStr.c_str());
-		}
+		modeStr = bfcUtilsGetStringForVideoMode(mode);
+		nosEngine.LogI("Route output %s with video mode %s", channelStr.c_str(), modeStr.c_str());
 		
 		if (BERR_NO_ERROR == device->OpenChannel(channel, mode))
 			UpdateStatus(nos::fb::NodeStatusMessageType::INFO, channelStr + " " + modeStr);
