@@ -60,6 +60,8 @@ struct DMAWriteNodeContext : nos::NodeContext
 
 		{
 			nos::util::Stopwatch sw;
+			if((uintptr_t)buffer % 64 != 0)
+				nosEngine.LogE("DMA write only accepts buffers addresses to be aligned to 64 bytes"); // TODO: Check device. This is only in Khronos range!
 			device->DMAWriteFrame(channel, BufferId, buffer, inputBuffer.Info.Buffer.Size);
 			auto elapsed = sw.Elapsed();
 			nosEngine.WatchLog(("Bluefish " + channelStr + " DMA Write").c_str(), nos::util::Stopwatch::ElapsedString(elapsed).c_str());

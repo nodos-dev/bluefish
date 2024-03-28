@@ -9,11 +9,11 @@
         "dependencies": [
             {
                 "name": "nos.utilities",
-                "version": "1.0.0"
+                "version": "1.1.0"
             },
             {
                 "name": "nos.sys.vulkan",
-                "version": "4.0.0"
+                "version": "5.0.0"
             }
         ]
     },
