@@ -42,8 +42,8 @@ struct DMAReadNodeContext : nos::NodeContext
 		bfcGetVideoWidth(videoMode, &width);
 		bfcGetVideoHeight(videoMode, UPD_FMT_FRAME, &height);
 		
-		nosVec2u compressedExt(width >> 1, height);
-		uint32_t bufferSize = compressedExt.x * compressedExt.y * 4;
+		nosVec2u ycbcrSize(width >> 1, height);
+		uint32_t bufferSize = ycbcrSize.x * ycbcrSize.y * 4;
 
 		constexpr nosMemoryFlags memoryFlags = nosMemoryFlags(NOS_MEMORY_FLAGS_HOST_VISIBLE);
 		if (outputBuffer.Memory.Size != bufferSize || outputBuffer.Info.Buffer.MemoryFlags != memoryFlags)
@@ -56,7 +56,7 @@ struct DMAReadNodeContext : nos::NodeContext
 						.Alignment = 64,
 						.Usage = nosBufferUsage(NOS_BUFFER_USAGE_STORAGE_BUFFER | NOS_BUFFER_USAGE_TRANSFER_SRC),
 						.MemoryFlags = memoryFlags
-					}}};
+					}} };
 			auto bufferDesc = nos::vkss::ConvertBufferInfo(bufInfo);
 			nosEngine.SetPinValueByName(NodeId, NOS_NAME_STATIC("Output"), nos::Buffer::From(bufferDesc));
 			for (size_t i = 0; i < args->PinCount; ++i)
@@ -85,7 +85,7 @@ struct DMAReadNodeContext : nos::NodeContext
 		if((uintptr_t)buffer % 64 != 0)
 			nosEngine.LogE("DMA write only accepts buffers addresses to be aligned to 64 bytes"); // TODO: Check device. This is only in Khronos range!
 
-		auto nextBufferId = (BufferId + 1) % 2;
+		auto nextBufferId = (BufferId + 1) % 4;
 		{
 			nos::util::Stopwatch sw;
 			std::vector<uint8_t> data(outputBuffer.Info.Buffer.Size, 255);

@@ -238,7 +238,11 @@ Channel::Channel(BluefishDevice* device, EBlueVideoChannel channel, EVideoModeEx
 	}
 	else
 	{
-		auto setup = Device->GetSetupInfoForInput(channel, err);
+		auto setup = bfcUtilsGetDefaultSetupInfoOutput(channel, mode);
+		setup.MemoryFormat = MEM_FMT_2VUY;
+		setup.VideoEngine = VIDEO_ENGINE_FRAMESTORE;
+		setup.TransportSampling = Signal_FormatType_422;
+		setup.SignalLinkType = SIGNAL_LINK_TYPE_SINGLE_LINK; // Support only single link for now
 		if (BERR_NO_ERROR != err)
 			return;
 		err = bfcUtilsValidateSetupInfo(&setup);
@@ -260,7 +264,7 @@ Channel::~Channel()
 	bfcDestroy(Instance);
 }
 
-bool Channel::DMAWriteFrame(uint32_t bufferId, uint8_t* inBuffer, uint32_t size) const
+bool Channel::DMAWriteFrame(uint32_t bufferId, uint8_t* inBuffer, uint32_t size)
 {
 	auto ret = bfcDmaWriteToCardAsync(Instance, inBuffer, size, nullptr, BlueImage_DMABuffer(bufferId, BLUE_DMA_DATA_TYPE_IMAGE_FRAME), 0);
 	if(ret < 0)
@@ -274,7 +278,7 @@ bool Channel::DMAWriteFrame(uint32_t bufferId, uint8_t* inBuffer, uint32_t size)
 	return err == BERR_NO_ERROR;
 }
 
-bool Channel::DMAReadFrame(uint32_t nextCaptureBufferId, uint32_t readBufferId, uint8_t* outBuffer, uint32_t size) const
+bool Channel::DMAReadFrame(uint32_t nextCaptureBufferId, uint32_t readBufferId, uint8_t* outBuffer, uint32_t size)
 {
 	auto err = bfcRenderBufferCapture(Instance, BlueBuffer_Image(nextCaptureBufferId));
 	if (err != BERR_NO_ERROR)

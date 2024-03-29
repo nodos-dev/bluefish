@@ -75,8 +75,8 @@ public:
 
 	Channel(Channel const&) = delete;
 	
-	bool DMAWriteFrame(uint32_t bufferId, uint8_t* inBuffer, uint32_t size) const;
-	bool DMAReadFrame(uint32_t nextCaptureBufferId, uint32_t readBufferId, uint8_t* outBuffer, uint32_t size) const;
+	bool DMAWriteFrame(uint32_t bufferId, uint8_t* inBuffer, uint32_t size);
+	bool DMAReadFrame(uint32_t nextCaptureBufferId, uint32_t readBufferId, uint8_t* outBuffer, uint32_t size);
 	bool WaitVBI(unsigned long& fieldCount) const;
 	std::array<uint32_t, 2> GetDeltaSeconds() const { return DeltaSeconds; }
 	
