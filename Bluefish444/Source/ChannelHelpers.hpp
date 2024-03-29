@@ -73,12 +73,12 @@ inline void EnumerateInputChannels(flatbuffers::FlatBufferBuilder& fbb, std::vec
 		for (EBlueVideoChannel ch = BLUE_VIDEO_OUTPUT_CHANNEL_1; ch < BLUE_VIDEO_INPUT_CHANNEL_8;
 		     ch = static_cast<EBlueVideoChannel>(static_cast<int>(ch) + 1))
 		{
+			if (!IsInputChannel(ch))
+				continue;
 			SelectChannelCommand command = {
 				.DeviceId = device.GetId(),
 				.Channel = ch
 			};
-			if (!IsInputChannel(ch))
-				continue;
 			std::string channelName = bfcUtilsGetStringForVideoChannel(ch);
 			ReplaceString(channelName, "Input ", "");
 			if (device.CanChannelDoInput(ch))

@@ -18,7 +18,7 @@
       "class_name": "DMAWrite",
       "display_name": "BF DMA Write",
       "contents_type": "Job",
-      "description": "Sends received YCbCr frame to the specified channel",
+      "description": "Sends YCbCr frames to the specified channel",
       "pins": [
         {
           "name": "Thread",
@@ -37,6 +37,38 @@
           "type_name": "nos.sys.vulkan.Buffer",
           "show_as": "INPUT_PIN",
           "can_show_as": "INPUT_PIN_ONLY"
+        }
+      ]
+    },
+    {
+      "class_name": "DMARead",
+      "display_name": "BF DMA Read",
+      "contents_type": "Job",
+      "description":  "Reads YCbCr frames from the specified channel",
+      "pins": [
+        {
+          "name": "Run",
+          "type_name": "nos.exe",
+          "show_as": "INPUT_PIN",
+          "can_show_as": "INPUT_PIN_ONLY"
+        },
+        {
+          "name": "DMA Complete",
+          "type_name": "nos.exe",
+          "show_as": "OUTPUT_PIN",
+          "can_show_as": "OUTPUT_PIN_ONLY"
+        },
+        {
+          "name": "Channel",
+          "type_name": "nos.bluefish.ChannelInfo",
+          "show_as": "INPUT_PIN",
+          "can_show_as": "INPUT_PIN_ONLY"
+        },
+        {
+          "name": "Output",
+          "type_name": "nos.sys.vulkan.Buffer",
+          "show_as": "OUTPUT_PIN",
+          "can_show_as": "OUTPUT_PIN_ONLY"
         }
       ]
     },

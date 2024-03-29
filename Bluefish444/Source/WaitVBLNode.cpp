@@ -37,7 +37,7 @@ struct WaitVBLNodeContext : nos::NodeContext
 		auto channel = static_cast<EBlueVideoChannel>(channelInfo->channel()->id());
 		auto videoMode = static_cast<EVideoModeExt>(channelInfo->video_mode());
 		auto prev = FieldCount;
-		device->WaitForOutputVBI(channel, FieldCount);
+		device->WaitVBI(channel, FieldCount);
 		auto diff = FieldCount - prev;
 		uint8_t isInterlaced = bfcUtilsIsVideoModeProgressive(videoMode);
 		if (diff > (1 + isInterlaced))

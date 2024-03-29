@@ -56,12 +56,13 @@ struct DMAWriteNodeContext : nos::NodeContext
 		auto res = nosVulkan->WaitGpuEvent(&event, 10e9);
 		if (res != NOS_RESULT_SUCCESS)
 			nosEngine.LogE("Error when flush before Bluefish DMA write");
+
 		auto buffer = nosVulkan->Map(&inputBuffer);
+		if((uintptr_t)buffer % 64 != 0)
+			nosEngine.LogE("DMA write only accepts buffers addresses to be aligned to 64 bytes"); // TODO: Check device. This is only in Khronos range!
 
 		{
 			nos::util::Stopwatch sw;
-			if((uintptr_t)buffer % 64 != 0)
-				nosEngine.LogE("DMA write only accepts buffers addresses to be aligned to 64 bytes"); // TODO: Check device. This is only in Khronos range!
 			device->DMAWriteFrame(channel, BufferId, buffer, inputBuffer.Info.Buffer.Size);
 			auto elapsed = sw.Elapsed();
 			nosEngine.WatchLog(("Bluefish " + channelStr + " DMA Write").c_str(), nos::util::Stopwatch::ElapsedString(elapsed).c_str());

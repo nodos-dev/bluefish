@@ -19,7 +19,8 @@
     },
     "node_definitions": [
         "Config/BluefishNodes.nosdef",
-        "Config/OutputNode.nosdef"
+        "Config/OutputNode.nosdef",
+        "Config/InputNode.nosdef"
     ],
     "custom_types": [
         "Config/BluefishTypes.fbs"
@@ -38,6 +39,11 @@
         },
         {
             "category": "Device|Bluefish444",
+            "class_name": "DMARead",
+            "display_name": "DMA Read"
+        },
+        {
+            "category": "Device|Bluefish444",
             "class_name": "WaitVBL",
             "display_name": "WaitVBL"
         },
@@ -45,6 +51,11 @@
             "category": "Device|Bluefish444",
             "class_name": "Output",
             "display_name": "Output"
+        },
+        {
+            "category": "Device|Bluefish444",
+            "class_name": "Input",
+            "display_name": "Input"
         }
     ]
 }

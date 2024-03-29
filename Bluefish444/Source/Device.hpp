@@ -15,9 +15,23 @@
 #include <memory>
 #include <functional>
 #include <array>
+#include <optional>
 
 namespace bf
 {
+
+class SdkInstance
+{
+public:
+	SdkInstance();
+	~SdkInstance();
+	operator BLUEVELVETC_HANDLE() const { return Handle; }
+	void Attach(class BluefishDevice* device);
+	void Detach();
+protected:
+	BLUEVELVETC_HANDLE Handle = 0;
+	std::optional<BLUE_S32> AttachedDevice = std::nullopt;
+};
 
 class BluefishDevice
 {
@@ -31,11 +45,12 @@ public:
 	~BluefishDevice();
 
 	bool CanChannelDoInput(EBlueVideoChannel channel) const;
-	blue_setup_info GetRecommendedSetupInfoForInput(EBlueVideoChannel channel, BErr& err) const;
+	blue_setup_info GetSetupInfoForInput(EBlueVideoChannel channel, BErr& err) const;
     BErr OpenChannel(EBlueVideoChannel channel, EVideoModeExt mode);
 	void CloseChannel(EBlueVideoChannel channel);
-	bool DMAWriteFrame(EBlueVideoChannel channel, uint32_t bufferId, uint8_t* buffer, uint32_t size) const;
-	void WaitForOutputVBI(EBlueVideoChannel channel, unsigned long& fieldCount) const;
+	bool DMAWriteFrame(EBlueVideoChannel channel, uint32_t bufferId, uint8_t* inBuffer, uint32_t size) const;
+	bool DMAReadFrame(EBlueVideoChannel channel, uint32_t nextCaptureBufferId, uint32_t readBufferId, uint8_t* outBuffer, uint32_t size) const;
+	bool WaitVBI(EBlueVideoChannel channel, unsigned long& fieldCount) const;
 	std::array<uint32_t, 2> GetDeltaSeconds(EBlueVideoChannel channel) const;
 	
 	std::string GetSerial() const;
@@ -60,13 +75,15 @@ public:
 
 	Channel(Channel const&) = delete;
 	
-	bool DMAWriteFrame(uint32_t bufferId, uint8_t* buffer, uint32_t size) const;
-	void WaitForOutputVBI(unsigned long& fieldCount) const;
+	bool DMAWriteFrame(uint32_t bufferId, uint8_t* inBuffer, uint32_t size) const;
+	bool DMAReadFrame(uint32_t nextCaptureBufferId, uint32_t readBufferId, uint8_t* outBuffer, uint32_t size) const;
+	bool WaitVBI(unsigned long& fieldCount) const;
 	std::array<uint32_t, 2> GetDeltaSeconds() const { return DeltaSeconds; }
 	
 protected:
 	BluefishDevice* Device;
 	BLUEVELVETC_HANDLE Instance = nullptr;
+	EBlueVideoChannel VideoChannel;
 	std::array<uint32_t, 2> DeltaSeconds;
 };
 

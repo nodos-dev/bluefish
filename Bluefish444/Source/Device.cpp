@@ -11,6 +11,37 @@ extern nosEngineServices nosEngine;
 
 namespace bf
 {
+SdkInstance::SdkInstance()
+{
+	Handle = bfcFactory();
+}
+
+SdkInstance::~SdkInstance()
+{
+	Detach();
+	bfcDestroy(Handle);
+}
+
+void SdkInstance::Attach(BluefishDevice* device)
+{
+	auto err = bfcAttach(Handle, device->GetId());
+	if (BERR_NO_ERROR != err)
+		nosEngine.LogE("Error while attaching device %d: %s", device->GetId(), bfcUtilsGetStringForBErr(err));
+	else
+		AttachedDevice = device->GetId();
+}
+
+void SdkInstance::Detach()
+{
+	if (AttachedDevice)
+	{
+		auto err = bfcDetach(Handle);
+		if (BERR_NO_ERROR != err)
+			nosEngine.LogE("Error while detaching device %d: %s", *AttachedDevice, bfcUtilsGetStringForBErr(err));
+		AttachedDevice = std::nullopt;
+	}
+}
+
 BErr BluefishDevice::InitializeDevices()
 {
 	static bool initialized = false;
@@ -51,27 +82,38 @@ BluefishDevice::BluefishDevice(BLUE_S32 deviceId, BErr& error) : Id(deviceId)
 	bfcUtilsGetDeviceInfo(Id, &Info);
 	bfcSetCardProperty32(Instance, VIDEO_BLACKGENERATOR, ENUM_BLACKGENERATOR_OFF);
 	bfcSetCardProperty32(Instance, VIDEO_IMAGE_ORIENTATION, ImageOrientation_Normal);
+	bfcDetach(Instance);
 }
 
 BluefishDevice::~BluefishDevice()
 {
-	// TODO: Close channels
-	if (auto err = bfcDetach(Instance))
-		nosEngine.LogE("Error during detach: %s", bfcUtilsGetStringForBErr(err));
+	Channels.clear();
 	bfcDestroy(Instance);
 }
 
 bool BluefishDevice::CanChannelDoInput(EBlueVideoChannel channel) const
 {
-	BErr err{};
-	GetRecommendedSetupInfoForInput(channel, err);
+	blue_setup_info setup = bfcUtilsGetDefaultSetupInfoInput(channel);
+	setup.DeviceId = GetId();
+	SdkInstance instance; // For some reason, we cannot reliably call below function without a fresh instance.
+	auto err = bfcUtilsGetSetupInfoForInputSignal(instance, &setup, UHD_PREFERENCE_DEFAULT);
 	return BERR_NO_ERROR == err;
 }
 
-blue_setup_info BluefishDevice::GetRecommendedSetupInfoForInput(EBlueVideoChannel channel, BErr& err) const
+blue_setup_info BluefishDevice::GetSetupInfoForInput(EBlueVideoChannel channel, BErr& err) const
 {
-	blue_setup_info setup{.DeviceId = GetId(), .VideoChannelInput = channel};
-	err = bfcUtilsGetRecommendedSetupInfoInput(Instance, &setup, UHD_PREFERENCE_DEFAULT);
+	blue_setup_info setup = bfcUtilsGetDefaultSetupInfoInput(channel);
+	err = bfcUtilsGetSetupInfoForInputSignal(Instance, &setup, UHD_PREFERENCE_DEFAULT);
+	if (BERR_NO_ERROR != err)
+	{
+		err = bfcUtilsGetRecommendedSetupInfoInput(Instance, &setup, UHD_PREFERENCE_DEFAULT);
+		if (BERR_NO_ERROR != err)
+			return setup;
+	}
+	setup.SignalLinkType = SIGNAL_LINK_TYPE_SINGLE_LINK; // Support only single link for now
+	setup.MemoryFormat = MEM_FMT_2VUY;
+	setup.VideoEngine = VIDEO_ENGINE_FRAMESTORE;
+	setup.TransportSampling = Signal_FormatType_422;
 	return setup;
 }
 
@@ -93,26 +135,37 @@ void BluefishDevice::CloseChannel(EBlueVideoChannel channel)
 		Channels.erase(it);
 }
 
-bool BluefishDevice::DMAWriteFrame(EBlueVideoChannel channel, uint32_t bufferId, uint8_t* buffer, uint32_t size) const
+bool BluefishDevice::DMAWriteFrame(EBlueVideoChannel channel, uint32_t bufferId, uint8_t* inBuffer, uint32_t size) const
 {
 	auto it = Channels.find(channel);
 	if (it == Channels.end())
 	{
-		nosEngine.LogE("BluefishDevice DMAWrite: Channel %s not open!", bfcUtilsGetStringForVideoChannel(channel));
+		nosEngine.LogE("DMA Write: Channel %s not open!", bfcUtilsGetStringForVideoChannel(channel));
 		return false;
 	}
-	return it->second->DMAWriteFrame(bufferId, buffer, size);
+	return it->second->DMAWriteFrame(bufferId, inBuffer, size);
 }
 
-void BluefishDevice::WaitForOutputVBI(EBlueVideoChannel channel, unsigned long& fieldCount) const
+bool BluefishDevice::DMAReadFrame(EBlueVideoChannel channel, uint32_t nextCaptureBufferId, uint32_t readBufferId, uint8_t* outBuffer, uint32_t size) const
 {
 	auto it = Channels.find(channel);
 	if (it == Channels.end())
 	{
-		nosEngine.LogE("BluefishDevice DMAWrite: Channel %s not open!", bfcUtilsGetStringForVideoChannel(channel));
-		return;
+		nosEngine.LogE("DMA Read: Channel %s not open!", bfcUtilsGetStringForVideoChannel(channel));
+		return false;
 	}
-	it->second->WaitForOutputVBI(fieldCount);
+	return it->second->DMAReadFrame(nextCaptureBufferId, readBufferId, outBuffer, size);
+}
+
+bool BluefishDevice::WaitVBI(EBlueVideoChannel channel, unsigned long& fieldCount) const
+{
+	auto it = Channels.find(channel);
+	if (it == Channels.end())
+	{
+		nosEngine.LogE("Wait VBI: Channel %s not open!", bfcUtilsGetStringForVideoChannel(channel));
+		return false;
+	}
+	return it->second->WaitVBI(fieldCount);
 }
 
 std::array<uint32_t, 2> BluefishDevice::GetDeltaSeconds(EBlueVideoChannel channel) const
@@ -166,7 +219,7 @@ std::string BluefishDevice::GetName() const
 }
 
 Channel::Channel(BluefishDevice* device, EBlueVideoChannel channel, EVideoModeExt mode, BErr& err)
-	: Device(device)
+	: Device(device), VideoChannel(channel)
 {
 	Instance = bfcFactory();
 	err = bfcAttach(Instance, Device->GetId());
@@ -174,7 +227,7 @@ Channel::Channel(BluefishDevice* device, EBlueVideoChannel channel, EVideoModeEx
 		return;
 	if (IsInputChannel(channel))
 	{
-		auto setup = device->GetRecommendedSetupInfoForInput(channel, err);
+		auto setup = device->GetSetupInfoForInput(channel, err);
 		if (BERR_NO_ERROR != err)
 			return;
 		err = bfcUtilsValidateSetupInfo(&setup);
@@ -185,10 +238,9 @@ Channel::Channel(BluefishDevice* device, EBlueVideoChannel channel, EVideoModeEx
 	}
 	else
 	{
-		auto setup = bfcUtilsGetDefaultSetupInfoOutput(channel, mode);
-		setup.MemoryFormat = MEM_FMT_2VUY;
-		setup.VideoEngine = VIDEO_ENGINE_FRAMESTORE;
-		setup.TransportSampling = Signal_FormatType_422;
+		auto setup = Device->GetSetupInfoForInput(channel, err);
+		if (BERR_NO_ERROR != err)
+			return;
 		err = bfcUtilsValidateSetupInfo(&setup);
 		if (BERR_NO_ERROR != err)
 			return;
@@ -208,12 +260,12 @@ Channel::~Channel()
 	bfcDestroy(Instance);
 }
 
-bool Channel::DMAWriteFrame(uint32_t bufferId, uint8_t* buffer, uint32_t size) const
+bool Channel::DMAWriteFrame(uint32_t bufferId, uint8_t* inBuffer, uint32_t size) const
 {
-	auto ret = bfcDmaWriteToCardAsync(Instance, buffer, size, nullptr, BlueImage_DMABuffer(bufferId, BLUE_DMA_DATA_TYPE_IMAGE_FRAME), 0);
+	auto ret = bfcDmaWriteToCardAsync(Instance, inBuffer, size, nullptr, BlueImage_DMABuffer(bufferId, BLUE_DMA_DATA_TYPE_IMAGE_FRAME), 0);
 	if(ret < 0)
 	{
-		nosEngine.LogE("Bluefish: Sync DMA Write returned with error code %d", ret);
+		nosEngine.LogE("DMA Write returned with '%s'", bfcUtilsGetStringForBErr(ret));
 		return false;
 	}
 	
@@ -222,10 +274,25 @@ bool Channel::DMAWriteFrame(uint32_t bufferId, uint8_t* buffer, uint32_t size) c
 	return err == BERR_NO_ERROR;
 }
 
-void Channel::WaitForOutputVBI(unsigned long& fieldCount) const
+bool Channel::DMAReadFrame(uint32_t nextCaptureBufferId, uint32_t readBufferId, uint8_t* outBuffer, uint32_t size) const
 {
-	bfcWaitVideoOutputSync(Instance, UPD_FMT_FRAME, &fieldCount);
+	auto err = bfcRenderBufferCapture(Instance, BlueBuffer_Image(nextCaptureBufferId));
+	if (err != BERR_NO_ERROR)
+		nosEngine.LogE("DMA Read: Cannot set read buffer to %d", nextCaptureBufferId);
+	auto ret = bfcDmaReadFromCardAsync(Instance, outBuffer, size, nullptr, BlueImage_DMABuffer(readBufferId, BLUE_DMA_DATA_TYPE_IMAGE_FRAME), 0);
+	if (ret < 0)
+	{
+		nosEngine.LogE("DMA Read returned with '%s'", bfcUtilsGetStringForBErr(ret));
+		return false;
+	}
+	return err == BERR_NO_ERROR;
 }
 
+bool Channel::WaitVBI(unsigned long& fieldCount) const
+{
+	return BERR_NO_ERROR == (IsInputChannel(VideoChannel)
+		                         ? bfcWaitVideoInputSync(Instance, UPD_FMT_FRAME, &fieldCount)
+		                         : bfcWaitVideoOutputSync(Instance, UPD_FMT_FRAME, &fieldCount));
+}
 
 }
