@@ -1,20 +1,17 @@
-﻿#include <Nodos/PluginAPI.h>
-#include <Nodos/PluginHelpers.hpp>
-#include <nosUtil/Stopwatch.hpp>
+﻿#include <nosUtil/Stopwatch.hpp>
 
 #include <nosVulkanSubsystem/nosVulkanSubsystem.h>
 
+#include "DMANodeBase.hpp"
 #include "BluefishTypes_generated.h"
 #include "Device.hpp"
 #include "nosVulkanSubsystem/Helpers.hpp"
 
 namespace bf
 {
-struct DMAWriteNodeContext : nos::NodeContext
+struct DMAWriteNodeContext : DMANodeBase
 {
-	DMAWriteNodeContext(const nosFbNode* node) : NodeContext(node)
-	{
-	}
+	using DMANodeBase::DMANodeBase;
 
 	nosResult ExecuteNode(const nosNodeExecuteArgs* args) override
 	{
@@ -63,14 +60,14 @@ struct DMAWriteNodeContext : nos::NodeContext
 
 		{
 			nos::util::Stopwatch sw;
-			device->DMAWriteFrame(channel, BufferId, buffer, inputBuffer.Info.Buffer.Size);
+			device->DMAWriteFrame(channel, GetBufferId(channel, BufferIdx), buffer, inputBuffer.Info.Buffer.Size);
 			auto elapsed = sw.Elapsed();
 			nosEngine.WatchLog(("Bluefish " + channelStr + " DMA Write").c_str(), nos::util::Stopwatch::ElapsedString(elapsed).c_str());
 		}
 
-		BufferId = (BufferId + 1) % 4;
+		BufferIdx = (BufferIdx + 1) % CycledBuffersPerChannel;
 
-		nosScheduleNodeParams schedule{
+		nosScheduleNodeParams schedule {
 			.NodeId = NodeId,
 			.AddScheduleCount = 1
 		};
@@ -78,7 +75,7 @@ struct DMAWriteNodeContext : nos::NodeContext
 
 		return NOS_RESULT_SUCCESS;
 	}
- 
+
 	void GetScheduleInfo(nosScheduleInfo* out) override
 	{
 		*out = nosScheduleInfo {
@@ -95,7 +92,6 @@ struct DMAWriteNodeContext : nos::NodeContext
 	}
 
 	nosVec2u DeltaSeconds{};
-	BLUE_U32 BufferId = 0;
 };
 
 nosResult RegisterDMAWriteNode(nosNodeFunctions* outFunctions)

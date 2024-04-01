@@ -1,20 +1,17 @@
-﻿#include <Nodos/PluginAPI.h>
-#include <Nodos/PluginHelpers.hpp>
-#include <nosUtil/Stopwatch.hpp>
+﻿#include <nosUtil/Stopwatch.hpp>
 
 #include <nosVulkanSubsystem/nosVulkanSubsystem.h>
 
+#include "DMANodeBase.hpp"
 #include "BluefishTypes_generated.h"
 #include "Device.hpp"
 #include "nosVulkanSubsystem/Helpers.hpp"
 
 namespace bf
 {
-struct DMAReadNodeContext : nos::NodeContext
+struct DMAReadNodeContext : DMANodeBase
 {
-	DMAReadNodeContext(const nosFbNode* node) : NodeContext(node)
-	{
-	}
+	using DMANodeBase::DMANodeBase;
 
 	nosResult ExecuteNode(const nosNodeExecuteArgs* args) override
 	{
@@ -73,47 +70,22 @@ struct DMAReadNodeContext : nos::NodeContext
 			return NOS_RESULT_SUCCESS;
 
 		std::string channelStr = bfcUtilsGetStringForVideoChannel(channel);
-		auto d = device->GetDeltaSeconds(channel);
-		nosVec2u newDeltaSeconds = { d[0], d[1] };
-		if (memcmp(&newDeltaSeconds, &DeltaSeconds, sizeof(nosVec2u)) != 0)
-		{
-			// TODO: Recompilation needed. Nodos should call our GetScheduleInfo function.
-			DeltaSeconds = newDeltaSeconds;
-		}
 
 		auto buffer = nosVulkan->Map(&outputBuffer);
 		if((uintptr_t)buffer % 64 != 0)
 			nosEngine.LogE("DMA write only accepts buffers addresses to be aligned to 64 bytes"); // TODO: Check device. This is only in Khronos range!
 
-		auto nextBufferId = (BufferId + 1) % 4;
+		auto nextBufferIdx = (BufferIdx + 1) % CycledBuffersPerChannel;
 		{
 			nos::util::Stopwatch sw;
-			device->DMAReadFrame(channel, nextBufferId, BufferId, buffer, outputBuffer.Info.Buffer.Size);
+			device->DMAReadFrame(channel, GetBufferId(channel, nextBufferIdx), GetBufferId(channel, BufferIdx), buffer, outputBuffer.Info.Buffer.Size);
 			auto elapsed = sw.Elapsed();
 			nosEngine.WatchLog(("Bluefish " + channelStr + " DMA Read").c_str(), nos::util::Stopwatch::ElapsedString(elapsed).c_str());
 		}
-		BufferId = nextBufferId;
+		BufferIdx = nextBufferIdx;
 
 		return NOS_RESULT_SUCCESS;
 	}
- 
-	void GetScheduleInfo(nosScheduleInfo* out) override
-	{
-		*out = nosScheduleInfo {
-			.Importance = 1,
-			.DeltaSeconds = DeltaSeconds,
-			.Type = NOS_SCHEDULE_TYPE_ON_DEMAND,
-		};
-	}
-	
-	void OnPathStart() override
-	{
-		nosScheduleNodeParams schedule{.NodeId = NodeId, .AddScheduleCount = 1};
-		nosEngine.ScheduleNode(&schedule);
-	}
-
-	nosVec2u DeltaSeconds{};
-	BLUE_U32 BufferId = 0;
 };
 
 nosResult RegisterDMAReadNode(nosNodeFunctions* outFunctions)

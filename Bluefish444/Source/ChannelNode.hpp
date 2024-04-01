@@ -12,7 +12,7 @@ struct ChannelNode : nos::NodeContext
 {
 	nosUUID ChannelPinId{};
 	nos::bluefish::TChannelInfo ChannelInfo{};
-	
+
 	ChannelNode(const nosFbNode* node);
 
 	void LoadChannelInfo(const nosFbNode* node);
