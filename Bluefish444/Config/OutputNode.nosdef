@@ -206,24 +206,6 @@
               "description": ""
             },
             {
-              "id": "4b27217b-69fc-417a-8014-383c509fde86",
-              "name": "ConversionFlags",
-              "type_name": "nos.utilities.YCbCrConversionFlags",
-              "show_as": "INPUT_PIN",
-              "can_show_as": "INPUT_PIN_OR_PROPERTY",
-              "pin_category": "",
-              "visualizer": { },
-              "data": "NONE",
-              "referred_by": [],
-              "def": "NONE",
-              "meta_data_map": [],
-              "contents_type": "JobPin",
-              "contents": { },
-              "orphan_state": { "is_orphan": true, "message": "Pin not found in owner node's definition" },
-              "description": "",
-              "display_name": "Conversion Flags"
-            },
-            {
               "id": "7855e4f4-46f1-4d2c-959f-6894cf9f4dfb",
               "name": "Colorspace",
               "type_name": "nos.fb.mat4",

@@ -8,7 +8,7 @@ endif()
 add_subdirectory("${EXTERNAL_DIR}/BF444" "${CMAKE_CURRENT_BINARY_DIR}/External/BF444")
 
 if (GENERATE_FLATBUFFERS_FILES)
-    generate_flatbuffers("${TOOLS_DIR}/flatc" "${CMAKE_CURRENT_SOURCE_DIR}/Config" "${CMAKE_CURRENT_SOURCE_DIR}/Source" "${CMAKE_CURRENT_SOURCE_DIR}/__temp__" "cpp" "")
+    generate_flatbuffers("${TOOLS_DIR}/flatc" "${CMAKE_CURRENT_SOURCE_DIR}/Config" "${CMAKE_CURRENT_SOURCE_DIR}/Source" "${CMAKE_CURRENT_SOURCE_DIR}/__temp__" "cpp" "${NODOS_BUILTIN_TYPES_DIR}")
 endif()
 
 get_targets(BLUEFISH_EXTERNAL_TARGETS "${CMAKE_CURRENT_BINARY_DIR}/External/BF444")

@@ -96,6 +96,8 @@ if (NOT WITH_NODOS)
 	cmake_path(SET NODOS_SDK_DIR_PATH $ENV{NODOS_SDK_DIR})
 	list(APPEND CMAKE_MODULE_PATH ${NODOS_SDK_DIR_PATH}/cmake)
     find_package(nosPluginSDK REQUIRED)
+else()
+    set(NODOS_BUILTIN_TYPES_DIR "${NOS_REPO_ROOT}/Source/Framework/nosFlatBuffers/FBS")
 endif()
 
 add_subdirectory(Bluefish444)

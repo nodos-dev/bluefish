@@ -69,8 +69,7 @@ void ChannelNode::OnMenuCommand(nosUUID itemID, uint32_t cmd)
 		nosEngine.LogE("No such Bluefish444 device found: %d", command.DeviceId);
 		return;
 	}
-	bool input = IsInputChannel(command.Channel);
-	if (input)
+	if (IsInputChannel(command.Channel))
 	{
 		BErr err{};
 		auto setup = device->GetSetupInfoForInput(command.Channel, err);
@@ -82,7 +81,7 @@ void ChannelNode::OnMenuCommand(nosUUID itemID, uint32_t cmd)
 		}
 	}
 	std::string pinName = "SingleLink " +  std::to_string(GetChannelNumber(command.Channel));
-	    
+
 	nos::bluefish::TChannelInfo channelPin{};
 	nos::bluefish::TDeviceId d;
 	d.serial = device->GetSerial();
@@ -94,6 +93,10 @@ void ChannelNode::OnMenuCommand(nosUUID itemID, uint32_t cmd)
 	channelPin.channel = std::make_unique<nos::bluefish::TChannelId>(std::move(c));
 	channelPin.video_mode = static_cast<int>(command.VideoMode);
 	channelPin.video_mode_name = bfcUtilsGetStringForVideoMode(command.VideoMode);
+	BLUE_U32 width, height, frameRate, frameRateIs1001;
+	scan_mode scanMode;
+	auto err = bfcUtilsGetFrameInfoForVideoModeExtV2(command.VideoMode, &width, &height, &frameRate, &frameRateIs1001, &scanMode);
+	channelPin.resolution = std::make_unique<nos::fb::vec2u>(width, height);
 	nosEngine.SetPinValue(ChannelPinId, nos::Buffer::From(channelPin));
 	UpdateChannel(std::move(channelPin));
 }

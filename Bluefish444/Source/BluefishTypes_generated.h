@@ -13,6 +13,8 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_REVISION == 26,
              "Non-compatible flatbuffers version included");
 
+#include "Builtins_generated.h"
+
 #include "array"
 
 namespace nos {
@@ -276,6 +278,7 @@ struct TChannelInfo : public ::flatbuffers::NativeTable {
   std::unique_ptr<nos::bluefish::TChannelId> channel{};
   std::string video_mode_name{};
   int32_t video_mode = 0;
+  std::unique_ptr<nos::fb::vec2u> resolution{};
   TChannelInfo() = default;
   TChannelInfo(const TChannelInfo &o);
   TChannelInfo(TChannelInfo&&) FLATBUFFERS_NOEXCEPT = default;
@@ -296,7 +299,8 @@ struct ChannelInfo FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_DEVICE = 4,
     VT_CHANNEL = 6,
     VT_VIDEO_MODE_NAME = 8,
-    VT_VIDEO_MODE = 10
+    VT_VIDEO_MODE = 10,
+    VT_RESOLUTION = 12
   };
   const nos::bluefish::DeviceId *device() const {
     return GetPointer<const nos::bluefish::DeviceId *>(VT_DEVICE);
@@ -322,12 +326,19 @@ struct ChannelInfo FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool mutate_video_mode(int32_t _video_mode = 0) {
     return SetField<int32_t>(VT_VIDEO_MODE, _video_mode, 0);
   }
+  const nos::fb::vec2u *resolution() const {
+    return GetStruct<const nos::fb::vec2u *>(VT_RESOLUTION);
+  }
+  nos::fb::vec2u *mutable_resolution() {
+    return GetStruct<nos::fb::vec2u *>(VT_RESOLUTION);
+  }
   template<size_t Index>
   auto get_field() const {
          if constexpr (Index == 0) return device();
     else if constexpr (Index == 1) return channel();
     else if constexpr (Index == 2) return video_mode_name();
     else if constexpr (Index == 3) return video_mode();
+    else if constexpr (Index == 4) return resolution();
     else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
@@ -339,6 +350,7 @@ struct ChannelInfo FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset(verifier, VT_VIDEO_MODE_NAME) &&
            verifier.VerifyString(video_mode_name()) &&
            VerifyField<int32_t>(verifier, VT_VIDEO_MODE, 4) &&
+           VerifyField<nos::fb::vec2u>(verifier, VT_RESOLUTION, 4) &&
            verifier.EndTable();
   }
   TChannelInfo *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -362,6 +374,9 @@ struct ChannelInfoBuilder {
   void add_video_mode(int32_t video_mode) {
     fbb_.AddElement<int32_t>(ChannelInfo::VT_VIDEO_MODE, video_mode, 0);
   }
+  void add_resolution(const nos::fb::vec2u *resolution) {
+    fbb_.AddStruct(ChannelInfo::VT_RESOLUTION, resolution);
+  }
   explicit ChannelInfoBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -378,8 +393,10 @@ inline ::flatbuffers::Offset<ChannelInfo> CreateChannelInfo(
     ::flatbuffers::Offset<nos::bluefish::DeviceId> device = 0,
     ::flatbuffers::Offset<nos::bluefish::ChannelId> channel = 0,
     ::flatbuffers::Offset<::flatbuffers::String> video_mode_name = 0,
-    int32_t video_mode = 0) {
+    int32_t video_mode = 0,
+    const nos::fb::vec2u *resolution = nullptr) {
   ChannelInfoBuilder builder_(_fbb);
+  builder_.add_resolution(resolution);
   builder_.add_video_mode(video_mode);
   builder_.add_video_mode_name(video_mode_name);
   builder_.add_channel(channel);
@@ -392,12 +409,13 @@ struct ChannelInfo::Traits {
   static auto constexpr Create = CreateChannelInfo;
   static constexpr auto name = "ChannelInfo";
   static constexpr auto fully_qualified_name = "nos.bluefish.ChannelInfo";
-  static constexpr size_t fields_number = 4;
+  static constexpr size_t fields_number = 5;
   static constexpr std::array<const char *, fields_number> field_names = {
     "device",
     "channel",
     "video_mode_name",
-    "video_mode"
+    "video_mode",
+    "resolution"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
@@ -408,14 +426,16 @@ inline ::flatbuffers::Offset<ChannelInfo> CreateChannelInfoDirect(
     ::flatbuffers::Offset<nos::bluefish::DeviceId> device = 0,
     ::flatbuffers::Offset<nos::bluefish::ChannelId> channel = 0,
     const char *video_mode_name = nullptr,
-    int32_t video_mode = 0) {
+    int32_t video_mode = 0,
+    const nos::fb::vec2u *resolution = nullptr) {
   auto video_mode_name__ = video_mode_name ? _fbb.CreateString(video_mode_name) : 0;
   return nos::bluefish::CreateChannelInfo(
       _fbb,
       device,
       channel,
       video_mode_name__,
-      video_mode);
+      video_mode,
+      resolution);
 }
 
 ::flatbuffers::Offset<ChannelInfo> CreateChannelInfo(::flatbuffers::FlatBufferBuilder &_fbb, const TChannelInfo *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -508,7 +528,8 @@ inline bool operator==(const TChannelInfo &lhs, const TChannelInfo &rhs) {
       ((lhs.device == rhs.device) || (lhs.device && rhs.device && *lhs.device == *rhs.device)) &&
       ((lhs.channel == rhs.channel) || (lhs.channel && rhs.channel && *lhs.channel == *rhs.channel)) &&
       (lhs.video_mode_name == rhs.video_mode_name) &&
-      (lhs.video_mode == rhs.video_mode);
+      (lhs.video_mode == rhs.video_mode) &&
+      ((lhs.resolution == rhs.resolution) || (lhs.resolution && rhs.resolution && *lhs.resolution == *rhs.resolution));
 }
 
 inline bool operator!=(const TChannelInfo &lhs, const TChannelInfo &rhs) {
@@ -520,7 +541,8 @@ inline TChannelInfo::TChannelInfo(const TChannelInfo &o)
       : device((o.device) ? new nos::bluefish::TDeviceId(*o.device) : nullptr),
         channel((o.channel) ? new nos::bluefish::TChannelId(*o.channel) : nullptr),
         video_mode_name(o.video_mode_name),
-        video_mode(o.video_mode) {
+        video_mode(o.video_mode),
+        resolution((o.resolution) ? new nos::fb::vec2u(*o.resolution) : nullptr) {
 }
 
 inline TChannelInfo &TChannelInfo::operator=(TChannelInfo o) FLATBUFFERS_NOEXCEPT {
@@ -528,6 +550,7 @@ inline TChannelInfo &TChannelInfo::operator=(TChannelInfo o) FLATBUFFERS_NOEXCEP
   std::swap(channel, o.channel);
   std::swap(video_mode_name, o.video_mode_name);
   std::swap(video_mode, o.video_mode);
+  std::swap(resolution, o.resolution);
   return *this;
 }
 
@@ -544,6 +567,7 @@ inline void ChannelInfo::UnPackTo(TChannelInfo *_o, const ::flatbuffers::resolve
   { auto _e = channel(); if (_e) { if(_o->channel) { _e->UnPackTo(_o->channel.get(), _resolver); } else { _o->channel = std::unique_ptr<nos::bluefish::TChannelId>(_e->UnPack(_resolver)); } } else if (_o->channel) { _o->channel.reset(); } }
   { auto _e = video_mode_name(); if (_e) _o->video_mode_name = _e->str(); }
   { auto _e = video_mode(); _o->video_mode = _e; }
+  { auto _e = resolution(); if (_e) _o->resolution = std::unique_ptr<nos::fb::vec2u>(new nos::fb::vec2u(*_e)); }
 }
 
 inline ::flatbuffers::Offset<ChannelInfo> ChannelInfo::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TChannelInfo* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -558,12 +582,14 @@ inline ::flatbuffers::Offset<ChannelInfo> CreateChannelInfo(::flatbuffers::FlatB
   auto _channel = _o->channel ? CreateChannelId(_fbb, _o->channel.get(), _rehasher) : 0;
   auto _video_mode_name = _o->video_mode_name.empty() ? 0 : _fbb.CreateString(_o->video_mode_name);
   auto _video_mode = _o->video_mode;
+  auto _resolution = _o->resolution ? _o->resolution.get() : nullptr;
   return nos::bluefish::CreateChannelInfo(
       _fbb,
       _device,
       _channel,
       _video_mode_name,
-      _video_mode);
+      _video_mode,
+      _resolution);
 }
 
 inline const ::flatbuffers::TypeTable *DeviceIdTypeTable() {
@@ -601,20 +627,23 @@ inline const ::flatbuffers::TypeTable *ChannelInfoTypeTable() {
     { ::flatbuffers::ET_SEQUENCE, 0, 0 },
     { ::flatbuffers::ET_SEQUENCE, 0, 1 },
     { ::flatbuffers::ET_STRING, 0, -1 },
-    { ::flatbuffers::ET_INT, 0, -1 }
+    { ::flatbuffers::ET_INT, 0, -1 },
+    { ::flatbuffers::ET_SEQUENCE, 0, 2 }
   };
   static const ::flatbuffers::TypeFunction type_refs[] = {
     nos::bluefish::DeviceIdTypeTable,
-    nos::bluefish::ChannelIdTypeTable
+    nos::bluefish::ChannelIdTypeTable,
+    nos::fb::vec2uTypeTable
   };
   static const char * const names[] = {
     "device",
     "channel",
     "video_mode_name",
-    "video_mode"
+    "video_mode",
+    "resolution"
   };
   static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, nullptr, names
+    ::flatbuffers::ST_TABLE, 5, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
