@@ -129,7 +129,10 @@ void ChannelNode::OpenChannel()
 	auto device = BluefishDevice::GetDevice(ChannelInfo.device->serial);
 	if (!device)
 	{
-		UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to find Bluefish444 device:" + ChannelInfo.device->serial);
+		if (!ChannelInfo.device->serial.empty())
+			UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to find Bluefish444 device:" + ChannelInfo.device->serial);
+		else
+			UpdateStatus(nos::fb::NodeStatusMessageType::INFO, "Right click node to see and select channels");
 		return;
 	}
 	EVideoModeExt mode = static_cast<EVideoModeExt>(ChannelInfo.video_mode);
