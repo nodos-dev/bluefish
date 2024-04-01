@@ -10,15 +10,13 @@ namespace bf
 
 struct OutputNode : ChannelNode
 {
-	nosUUID ChannelPinId{};
-	nos::bluefish::TChannelInfo ChannelInfo{};
-	
 	OutputNode(const nosFbNode* node) : ChannelNode(node)
 	{
 	}
 
 	uint8_t GetChannelTypeFlags() override { return OUTPUT; }
 };
+
 nosResult RegisterOutputNode(nosNodeFunctions* outFunctions)
 {
 	NOS_BIND_NODE_CLASS(NOS_NAME("Output"), OutputNode, outFunctions)

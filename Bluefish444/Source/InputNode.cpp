@@ -10,9 +10,6 @@ namespace bf
 
 struct InputNode : ChannelNode
 {
-	nosUUID ChannelPinId{};
-	nos::bluefish::TChannelInfo ChannelInfo{};
-	
 	InputNode(const nosFbNode* node) : ChannelNode(node)
 	{
 	}

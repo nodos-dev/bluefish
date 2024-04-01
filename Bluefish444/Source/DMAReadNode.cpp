@@ -88,8 +88,7 @@ struct DMAReadNodeContext : nos::NodeContext
 		auto nextBufferId = (BufferId + 1) % 4;
 		{
 			nos::util::Stopwatch sw;
-			std::vector<uint8_t> data(outputBuffer.Info.Buffer.Size, 255);
-			device->DMAReadFrame(channel, nextBufferId, BufferId, data.data(), outputBuffer.Info.Buffer.Size);
+			device->DMAReadFrame(channel, nextBufferId, BufferId, buffer, outputBuffer.Info.Buffer.Size);
 			auto elapsed = sw.Elapsed();
 			nosEngine.WatchLog(("Bluefish " + channelStr + " DMA Read").c_str(), nos::util::Stopwatch::ElapsedString(elapsed).c_str());
 		}
