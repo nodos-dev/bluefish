@@ -319,7 +319,7 @@
                 "width": 1920,
                 "height": 1080,
                 "format": "R16G16B16A16_UNORM",
-                "usage": "TRANSFER_SRC TRANSFER_DST"
+                "usage": "TRANSFER_SRC TRANSFER_DST SAMPLED STORAGE RENDER_TARGET"
               },
               "referred_by": [],
               "def": {
