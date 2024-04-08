@@ -155,6 +155,7 @@ void ChannelNode::OpenChannel()
 		UpdateStatus(nos::fb::NodeStatusMessageType::FAILURE, "Unable to open channel " + channelStr + ": " + bfcUtilsGetStringForBErr(err));
 		nosEngine.SetPinValue(ChannelPinId, nos::Buffer::From(nos::bluefish::TChannelInfo{}));
 	}
+	nosEngine.RecompilePath(NodeId);
 }
 
 void ChannelNode::CloseChannel()

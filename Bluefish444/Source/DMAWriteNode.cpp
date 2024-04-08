@@ -13,37 +13,49 @@ struct DMAWriteNodeContext : DMANodeBase
 {
 	using DMANodeBase::DMANodeBase;
 
+	nos::Buffer ChannelInfo{};
+	BluefishDevice* Device = nullptr;
+	EBlueVideoChannel Channel = BLUE_VIDEOCHANNEL_INVALID;
+
+	void OnPinValueChanged(nos::Name pinName, nosUUID pinId, nosBuffer value) override
+	{
+		if (pinName == NOS_NAME("Channel"))
+		{
+			if (ChannelInfo.Size() == value.Size && memcmp(ChannelInfo.Data(), value.Data, value.Size) == 0)
+				return;
+			auto* channelInfo = nos::InterpretPinValue<nos::bluefish::ChannelInfo>(value);
+			Device = nullptr;
+			ChannelInfo = {};
+			if (!channelInfo || !channelInfo->device())
+				return;
+			Device = BluefishDevice::GetDevice(channelInfo->device()->serial()->str()).get();
+			if (!Device || !channelInfo->channel()->name())
+				return;
+			ChannelInfo = value;
+			Channel = static_cast<EBlueVideoChannel>(channelInfo->channel()->id());
+			auto dSec = Device->GetDeltaSeconds(Channel);
+			DeltaSeconds = {dSec[0], dSec[1]};
+			nosEngine.RecompilePath(NodeId);
+		}
+	}
+
 	nosResult ExecuteNode(const nosNodeExecuteArgs* args) override
 	{
-		nos::bluefish::ChannelInfo* channelInfo = nullptr;
 		nosResourceShareInfo inputBuffer{};
 		for (size_t i = 0; i < args->PinCount; ++i)
 		{
 			auto& pin = args->Pins[i];
-			if (pin.Name == NOS_NAME_STATIC("Channel"))
-				channelInfo = nos::InterpretPinValue<nos::bluefish::ChannelInfo>(*pin.Data);
-			if (pin.Name == NOS_NAME_STATIC("Input"))
+			if (pin.Name == NOS_NAME("Input"))
 				inputBuffer = nos::vkss::ConvertToResourceInfo(*nos::InterpretPinValue<nos::sys::vulkan::Buffer>(*pin.Data));
 		}
 		
 		if (!inputBuffer.Memory.Handle)
 			return NOS_RESULT_FAILED;
  
-		if (!channelInfo->device() || !channelInfo->channel())
+		if (!Device || Channel == BLUE_VIDEOCHANNEL_INVALID)
 			return NOS_RESULT_FAILED;
 
-		auto device = BluefishDevice::GetDevice(channelInfo->device()->serial()->str());
-		if (!device)
-			return NOS_RESULT_FAILED;
-		auto channel = static_cast<EBlueVideoChannel>(channelInfo->channel()->id());
-		std::string channelStr = bfcUtilsGetStringForVideoChannel(channel);
-		auto d = device->GetDeltaSeconds(channel);
-		nosVec2u newDeltaSeconds = { d[0], d[1] };
-		if (memcmp(&newDeltaSeconds, &DeltaSeconds, sizeof(nosVec2u)) != 0)
-		{
-			// TODO: Recompilation needed. Nodos should call our GetScheduleInfo function.
-			DeltaSeconds = newDeltaSeconds;
-		}
+		std::string channelStr = bfcUtilsGetStringForVideoChannel(Channel);
 
 		nosCmd cmd;
 		nosVulkan->Begin("Flush Before Bluefish DMA Write", &cmd);
@@ -60,7 +72,7 @@ struct DMAWriteNodeContext : DMANodeBase
 
 		{
 			nos::util::Stopwatch sw;
-			device->DMAWriteFrame(channel, GetBufferId(channel, BufferIdx), buffer, inputBuffer.Info.Buffer.Size);
+			Device->DMAWriteFrame(Channel, GetBufferId(Channel, BufferIdx), buffer, inputBuffer.Info.Buffer.Size);
 			auto elapsed = sw.Elapsed();
 			nosEngine.WatchLog(("Bluefish " + channelStr + " DMA Write").c_str(), nos::util::Stopwatch::ElapsedString(elapsed).c_str());
 		}
