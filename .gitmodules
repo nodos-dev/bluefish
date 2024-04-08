@@ -4,3 +4,6 @@
 [submodule "Tools"]
 	path = Tools
 	url = https://github.com/mediaz/tools
+[submodule "Scripts"]
+	path = Scripts
+	url = https://github.com/mediaz/modules-scripts
