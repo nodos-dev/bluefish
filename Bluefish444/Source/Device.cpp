@@ -1,4 +1,6 @@
-﻿#include "Device.hpp"
+﻿// Copyright MediaZ Teknoloji A.S. All Rights Reserved.
+
+#include "Device.hpp"
 
 #include <BlueVelvetCUtils.h>
 

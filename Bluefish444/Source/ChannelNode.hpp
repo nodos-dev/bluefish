@@ -1,3 +1,7 @@
+/*
+ * Copyright MediaZ Teknoloji A.S. All Rights Reserved.
+ */
+
 #include <Nodos/PluginAPI.h>
 #include <Nodos/PluginHelpers.hpp>
 

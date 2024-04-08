@@ -1,4 +1,6 @@
-﻿#include <nosUtil/Stopwatch.hpp>
+﻿// Copyright MediaZ Teknoloji A.S. All Rights Reserved.
+
+#include <nosUtil/Stopwatch.hpp>
 
 #include <nosVulkanSubsystem/nosVulkanSubsystem.h>
 
