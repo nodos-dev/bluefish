@@ -30,8 +30,9 @@ public:
 	SdkInstance();
 	~SdkInstance();
 	operator BLUEVELVETC_HANDLE() const { return Handle; }
-	void Attach(class BluefishDevice* device);
-	void Detach();
+	BErr Attach(class BluefishDevice* device);
+	BErr Attach(BLUE_S32 deviceId);
+	BErr Detach();
 protected:
 	BLUEVELVETC_HANDLE Handle = 0;
 	std::optional<BLUE_S32> AttachedDevice = std::nullopt;
@@ -48,10 +49,14 @@ public:
 	BluefishDevice(BLUE_S32 deviceId, BErr& error);
 	~BluefishDevice();
 
-	bool CanChannelDoInput(EBlueVideoChannel channel) const;
+	bool CanChannelDoInput(EBlueVideoChannel channel);
 	blue_setup_info GetSetupInfoForInput(EBlueVideoChannel channel, BErr& err) const;
+
+	// Called from Nodos Task Manager Thread
     BErr OpenChannel(EBlueVideoChannel channel, EVideoModeExt mode);
 	void CloseChannel(EBlueVideoChannel channel);
+
+	// Called from user-created threads (DMA Thread node in In/Out graphs)
 	bool DMAWriteFrame(EBlueVideoChannel channel, uint32_t bufferId, uint8_t* inBuffer, uint32_t size) const;
 	bool DMAReadFrame(EBlueVideoChannel channel, uint32_t nextCaptureBufferId, uint32_t readBufferId, uint8_t* outBuffer, uint32_t size) const;
 	bool WaitVBI(EBlueVideoChannel channel, unsigned long& fieldCount) const;
@@ -64,8 +69,8 @@ public:
 private:
 	inline static std::unordered_map<std::string, std::shared_ptr<BluefishDevice>> Devices = {};
 
-	BLUEVELVETC_HANDLE Instance = nullptr;
 	BLUE_S32 Id = 0;
+	SdkInstance Instance;
 	blue_device_info Info{};
 
 	std::unordered_map<EBlueVideoChannel, std::unique_ptr<class Channel>> Channels;
@@ -79,6 +84,7 @@ public:
 
 	Channel(Channel const&) = delete;
 	
+	// Called from DMA threads
 	bool DMAWriteFrame(uint32_t bufferId, uint8_t* inBuffer, uint32_t size);
 	bool DMAReadFrame(uint32_t nextCaptureBufferId, uint32_t readBufferId, uint8_t* outBuffer, uint32_t size);
 	bool WaitVBI(unsigned long& fieldCount) const;
@@ -86,9 +92,9 @@ public:
 	
 protected:
 	BluefishDevice* Device;
-	BLUEVELVETC_HANDLE Instance = nullptr;
 	EBlueVideoChannel VideoChannel;
-	std::array<uint32_t, 2> DeltaSeconds;
+	SdkInstance Instance;
+	std::array<uint32_t, 2> DeltaSeconds{};
 };
 
 inline void ReplaceString(std::string &str, const std::string &toReplace, const std::string &replacement) {

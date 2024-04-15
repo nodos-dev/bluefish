@@ -70,21 +70,21 @@ struct DMAReadNodeContext : DMANodeBase
 
 		if (!outputBuffer.Memory.Handle)
 			return NOS_RESULT_SUCCESS;
-
+		 
 		std::string channelStr = bfcUtilsGetStringForVideoChannel(channel);
 
 		auto buffer = nosVulkan->Map(&outputBuffer);
 		if((uintptr_t)buffer % 64 != 0)
 			nosEngine.LogE("DMA write only accepts buffers addresses to be aligned to 64 bytes"); // TODO: Check device. This is only in Khronos range!
 
-		auto nextBufferIdx = (BufferIdx + 1) % CycledBuffersPerChannel;
+		auto startCaptureBufferId = (BufferId + 2) % CycledBuffersPerChannel; // +2: Buffer will be available after two VBIs.
 		{
 			nos::util::Stopwatch sw;
-			device->DMAReadFrame(channel, GetBufferId(channel, nextBufferIdx), GetBufferId(channel, BufferIdx), buffer, outputBuffer.Info.Buffer.Size);
+			device->DMAReadFrame(channel, startCaptureBufferId, BufferId, buffer, outputBuffer.Info.Buffer.Size);
 			auto elapsed = sw.Elapsed();
 			nosEngine.WatchLog(("Bluefish " + channelStr + " DMA Read").c_str(), nos::util::Stopwatch::ElapsedString(elapsed).c_str());
 		}
-		BufferIdx = nextBufferIdx;
+		BufferId = (BufferId + 1) % CycledBuffersPerChannel;
 
 		return NOS_RESULT_SUCCESS;
 	}

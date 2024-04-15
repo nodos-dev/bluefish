@@ -15,13 +15,8 @@ struct DMANodeBase : nos::NodeContext
 	{
 	}
 
-	static uint32_t GetBufferId(EBlueVideoChannel ch, uint32_t idx)
-	{
-		return static_cast<int>(ch) * CycledBuffersPerChannel + idx;
-	}
-
-	static constexpr uint32_t CycledBuffersPerChannel = 2;
-	uint32_t BufferIdx = 0;
+	static constexpr uint32_t CycledBuffersPerChannel = 4;
+	uint32_t BufferId = 0;
 };
 
 }

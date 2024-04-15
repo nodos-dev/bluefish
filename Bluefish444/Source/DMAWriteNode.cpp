@@ -74,12 +74,12 @@ struct DMAWriteNodeContext : DMANodeBase
 
 		{
 			nos::util::Stopwatch sw;
-			Device->DMAWriteFrame(Channel, GetBufferId(Channel, BufferIdx), buffer, inputBuffer.Info.Buffer.Size);
+			Device->DMAWriteFrame(Channel, BufferId, buffer, inputBuffer.Info.Buffer.Size);
 			auto elapsed = sw.Elapsed();
 			nosEngine.WatchLog(("Bluefish " + channelStr + " DMA Write").c_str(), nos::util::Stopwatch::ElapsedString(elapsed).c_str());
 		}
 
-		BufferIdx = (BufferIdx + 1) % CycledBuffersPerChannel;
+		BufferId = (BufferId + 1) % CycledBuffersPerChannel;
 
 		nosScheduleNodeParams schedule {
 			.NodeId = NodeId,
