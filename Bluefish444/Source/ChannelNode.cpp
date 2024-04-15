@@ -76,7 +76,12 @@ void ChannelNode::OnMenuCommand(nosUUID itemID, uint32_t cmd)
 		BErr err{};
 		auto setup = device->GetSetupInfoForInput(command.Channel, err);
 		command.VideoMode = setup.VideoModeExt;
-		if (setup.SignalLinkType != SIGNAL_LINK_TYPE_SINGLE_LINK)
+		if (err != BERR_NO_ERROR)
+		{
+			nosEngine.LogE("Unable to get input setup info: %s", bfcUtilsGetStringForBErr(err));
+			return;
+		}
+		else if (setup.SignalLinkType != SIGNAL_LINK_TYPE_SINGLE_LINK)
 		{
 			nosEngine.LogE("Unable to open input channel: Only SingleLink is supported for now.");
 			return;
