@@ -2,13 +2,17 @@
     "info": {
         "id": {
             "name": "nos.bluefish",
-            "version": "1.0.0"
+            "version": "1.0.1"
         },
         "description": "Nodes for video I/O with Bluefish hardware",
         "display_name": "Bluefish444",
         "dependencies": [
             {
                 "name": "nos.utilities",
+                "version": "2.0.0"
+            },
+            {
+                "name": "nos.MediaIO",
                 "version": "1.1.0"
             },
             {

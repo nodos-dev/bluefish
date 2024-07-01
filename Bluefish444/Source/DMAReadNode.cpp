@@ -13,19 +13,27 @@ namespace bf
 {
 struct DMAReadNodeContext : DMANodeBase
 {
-	using DMANodeBase::DMANodeBase;
+	DMAReadNodeContext(const nosFbNode* node) : DMANodeBase(node) {
+		AddPinValueWatcher(NOS_NAME("BufferToWrite"), [this](nos::Buffer const& newVal, std::optional<nos::Buffer> oldVal) {
+			nosEngine.SetPinValue(PinName2Id[NOS_NAME("Output")], newVal);
+		});
+	}
 
 	nosResult ExecuteNode(const nosNodeExecuteArgs* args) override
 	{
 		nos::bluefish::ChannelInfo* channelInfo = nullptr;
 		nosResourceShareInfo outputBuffer{};
+		nosUUID outputBufferId{};
 		for (size_t i = 0; i < args->PinCount; ++i)
 		{
 			auto& pin = args->Pins[i];
-			if (pin.Name == NOS_NAME_STATIC("Channel"))
+			if (pin.Name == NOS_NAME("Channel"))
 				channelInfo = nos::InterpretPinValue<nos::bluefish::ChannelInfo>(*pin.Data);
-			if (pin.Name == NOS_NAME_STATIC("Output"))
+			if (pin.Name == NOS_NAME("Output"))
+			{
 				outputBuffer = nos::vkss::ConvertToResourceInfo(*nos::InterpretPinValue<nos::sys::vulkan::Buffer>(*pin.Data));
+				outputBufferId = pin.Id;
+			}
 		}
  
 		if (!channelInfo->device() || !channelInfo->channel())
@@ -44,32 +52,8 @@ struct DMAReadNodeContext : DMANodeBase
 		nosVec2u ycbcrSize(width >> 1, height);
 		uint32_t bufferSize = ycbcrSize.x * ycbcrSize.y * 4;
 
-		constexpr nosMemoryFlags memoryFlags = nosMemoryFlags(NOS_MEMORY_FLAGS_HOST_VISIBLE);
-		if (outputBuffer.Memory.Size != bufferSize || outputBuffer.Info.Buffer.MemoryFlags != memoryFlags)
-		{
-			nosResourceShareInfo bufInfo = {
-				.Info = {
-					.Type = NOS_RESOURCE_TYPE_BUFFER,
-					.Buffer = nosBufferInfo{
-						.Size = (uint32_t)bufferSize,
-						.Alignment = 64,
-						.Usage = nosBufferUsage(NOS_BUFFER_USAGE_STORAGE_BUFFER | NOS_BUFFER_USAGE_TRANSFER_SRC),
-						.MemoryFlags = memoryFlags
-					}} };
-			auto bufferDesc = nos::vkss::ConvertBufferInfo(bufInfo);
-			nosEngine.SetPinValueByName(NodeId, NOS_NAME_STATIC("Output"), nos::Buffer::From(bufferDesc));
-			for (size_t i = 0; i < args->PinCount; ++i)
-			{
-				auto& pin = args->Pins[i];
-				if (pin.Name == NOS_NAME_STATIC("Channel"))
-					channelInfo = nos::InterpretPinValue<nos::bluefish::ChannelInfo>(*pin.Data);
-				if (pin.Name == NOS_NAME_STATIC("Output"))
-					outputBuffer = nos::vkss::ConvertToResourceInfo(*nos::InterpretPinValue<nos::sys::vulkan::Buffer>(*pin.Data));
-			}
-		}
-
-		if (!outputBuffer.Memory.Handle)
-			return NOS_RESULT_SUCCESS;
+		if (!outputBuffer.Memory.Handle || outputBuffer.Info.Buffer.Size != bufferSize)
+			return NOS_RESULT_FAILED;
 		 
 		std::string channelStr = bfcUtilsGetStringForVideoChannel(channel);
 
@@ -85,6 +69,10 @@ struct DMAReadNodeContext : DMANodeBase
 			nosEngine.WatchLog(("Bluefish " + channelStr + " DMA Read").c_str(), nos::util::Stopwatch::ElapsedString(elapsed).c_str());
 		}
 		BufferId = (BufferId + 1) % CycledBuffersPerChannel;
+
+		outputBuffer.Info.Buffer.FieldType = NOS_TEXTURE_FIELD_TYPE_PROGRESSIVE; // TODO: Interlaced support
+
+		nosEngine.SetPinValue(outputBufferId, nos::Buffer::From(nos::vkss::ConvertBufferInfo(outputBuffer)));
 
 		return NOS_RESULT_SUCCESS;
 	}

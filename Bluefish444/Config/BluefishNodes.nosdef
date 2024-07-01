@@ -53,6 +53,12 @@
           "can_show_as": "INPUT_PIN_ONLY"
         },
         {
+          "name": "BufferToWrite",
+          "type_name": "nos.sys.vulkan.Buffer",
+          "show_as": "INPUT_PIN",
+          "can_show_as": "INPUT_PIN_ONLY"
+        },
+        {
           "name": "DMA Complete",
           "type_name": "nos.exe",
           "show_as": "OUTPUT_PIN",
@@ -66,6 +72,7 @@
         },
         {
           "name": "Output",
+          "description": "This is the same buffer as the input buffer 'BufferToWrite'.",
           "type_name": "nos.sys.vulkan.Buffer",
           "show_as": "OUTPUT_PIN",
           "can_show_as": "OUTPUT_PIN_ONLY"

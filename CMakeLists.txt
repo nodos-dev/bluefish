@@ -34,16 +34,7 @@ endmacro()
 # ------------
 
 # Nodos Plugin SDK
-if (NOT WITH_NODOS)
-	cmake_path(SET NODOS_SDK_DIR_PATH $ENV{NODOS_SDK_DIR})
-	list(APPEND CMAKE_MODULE_PATH ${NODOS_SDK_DIR_PATH}/cmake)
-    find_package(nosPluginSDK REQUIRED)
-    set(TOOLS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Tools/${CMAKE_SYSTEM_NAME}")
-    include(${CMAKE_CURRENT_SOURCE_DIR}/Scripts/CMake/GenerateFlatBuffers.cmake)
-else()
-    set(NODOS_BUILTIN_TYPES_DIR "${NOS_REPO_ROOT}/Source/Framework/nosFlatBuffers/FBS")
-endif()
-
-include(${CMAKE_CURRENT_SOURCE_DIR}/Scripts/CMake/Plugins.cmake)
+nos_find_sdk("1.2.0" NOS_PLUGIN_SDK_TARGET NOS_SUBSYSTEM_SDK_TARGET NOS_SDK_DIR)
+nos_get_module("nos.sys.vulkan" "5.2" NOS_SYS_VULKAN_5_2_TARGET)
 
 add_subdirectory(Bluefish444)

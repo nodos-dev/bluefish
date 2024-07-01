@@ -109,10 +109,11 @@ bool BluefishDevice::CanChannelDoInput(EBlueVideoChannel channel)
 blue_setup_info BluefishDevice::GetSetupInfoForInput(EBlueVideoChannel channel, BErr& err) const
 {
 	blue_setup_info setup = bfcUtilsGetDefaultSetupInfoInput(channel);
-	err = bfcUtilsGetSetupInfoForInputSignal(Instance, &setup, UHD_PREFERENCE_DEFAULT);
+	setup.DeviceId = GetId();
+	err = bfcUtilsGetSetupInfoForInputSignal(nullptr, &setup, UHD_PREFERENCE_DEFAULT);
 	if (BERR_NO_ERROR != err)
 	{
-		err = bfcUtilsGetRecommendedSetupInfoInput(Instance, &setup, UHD_PREFERENCE_DEFAULT);
+		err = bfcUtilsGetRecommendedSetupInfoInput(nullptr, &setup, UHD_PREFERENCE_DEFAULT);
 		if (BERR_NO_ERROR != err)
 			return setup;
 	}
