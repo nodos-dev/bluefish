@@ -1,6 +1,3 @@
 [submodule "External/BF444"]
 	path = External/BF444
 	url = https://github.com/mediaz/bluefish-sdk.git
-[submodule "Tools"]
-	path = Tools
-	url = https://github.com/mediaz/tools

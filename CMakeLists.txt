@@ -32,11 +32,11 @@ endmacro()
 
 # Dependencies
 # ------------
-set(TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Tools/${CMAKE_SYSTEM_NAME})
-set(FLATC_EXECUTABLE ${TOOLS_DIR}/flatc)
 
 # Nodos Plugin SDK
 nos_find_sdk("1.2.0" NOS_PLUGIN_SDK_TARGET NOS_SUBSYSTEM_SDK_TARGET NOS_SDK_DIR)
 nos_get_module("nos.sys.vulkan" "5.2" NOS_SYS_VULKAN_5_2_TARGET)
+
+set(FLATC_EXECUTABLE ${NOS_SDK_DIR}/bin/flatc)
 
 add_subdirectory(Bluefish444)
