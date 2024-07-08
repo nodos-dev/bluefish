@@ -3,6 +3,8 @@
 cmake_minimum_required(VERSION 3.24.2)
 project("BluefishPlugins")
 
+set(CMAKE_CXX_STANDARD 20)
+
 set(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/External)
 
 macro(get_targets targets dir)
