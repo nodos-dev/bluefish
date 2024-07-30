@@ -10,8 +10,10 @@
 #endif
 #include <Windows.h>
 #endif
-#include <BlueVelvetC.h>
-#include <BlueVelvetCUtils.h>
+
+#define LOAD_FUNC_PTR_V6_5_3
+#include <BlueVelvetCFuncPtr.h>
+#include <BlueVelvetCExternHelper.h>
 
 // stl
 #include <unordered_map>

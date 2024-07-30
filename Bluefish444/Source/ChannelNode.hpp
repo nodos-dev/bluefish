@@ -6,8 +6,6 @@
 #include <Nodos/PluginHelpers.hpp>
 
 #include "BluefishTypes_generated.h"
-#include "Device.hpp"
-#include "ChannelHelpers.hpp"
 
 namespace bf
 {

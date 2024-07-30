@@ -2,14 +2,10 @@
 
 #include "Device.hpp"
 
-#include <BlueVelvetCUtils.h>
-
 // stl
 #include <sstream>
 
 #include "Nodos/Modules.h"
-
-extern nosEngineServices nosEngine;
 
 namespace bf
 {

@@ -1,11 +1,8 @@
 ﻿// Copyright MediaZ Teknoloji A.S. All Rights Reserved.
 
-#include <Nodos/PluginAPI.h>
-#include <Nodos/PluginHelpers.hpp>
-
-#include "BluefishTypes_generated.h"
-#include "Device.hpp"
 #include "ChannelNode.hpp"
+#include "ChannelHelpers.hpp"
+#include "Device.hpp"
 
 namespace bf
 {

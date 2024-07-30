@@ -5,6 +5,10 @@
 
 #include <nosVulkanSubsystem/nosVulkanSubsystem.h>
 
+#define IMPLEMENTATION_BLUEVELVETC_FUNC_PTR
+#define LOAD_FUNC_PTR_V6_5_3
+#include <BlueVelvetCFuncPtr.h>
+
 NOS_INIT()
 NOS_VULKAN_INIT()
 
@@ -29,11 +33,8 @@ nosResult RegisterOutputNode(nosNodeFunctions*);
 nosResult RegisterDMAReadNode(nosNodeFunctions*);
 nosResult RegisterInputNode(nosNodeFunctions*);
 
-extern "C"
+NOSAPI_ATTR nosResult NOSAPI_CALL ExportNodeFunctions(size_t* outCount, nosNodeFunctions** outFunctions)
 {
-/// Nodos calls this function to retrieve the node type count, type names and function pointers.
-/// The function first called with outList = nullptr to retrieve the count, then called again with a list of nosNodeFunctions.
-NOSAPI_ATTR nosResult NOSAPI_CALL nosExportNodeFunctions(size_t* outCount, nosNodeFunctions** outFunctions) {
 	*outCount = static_cast<size_t>(Nodes::Count);
 	if (!outFunctions)
 		return NOS_RESULT_SUCCESS;
@@ -45,7 +46,34 @@ NOSAPI_ATTR nosResult NOSAPI_CALL nosExportNodeFunctions(size_t* outCount, nosNo
 	NOS_RETURN_ON_FAILURE(RegisterOutputNode(outFunctions[static_cast<int>(Nodes::OutputNode)]))
 	NOS_RETURN_ON_FAILURE(RegisterDMAReadNode(outFunctions[static_cast<int>(Nodes::DMARead)]))
 	NOS_RETURN_ON_FAILURE(RegisterInputNode(outFunctions[static_cast<int>(Nodes::InputNode)]))
-    return NOS_RESULT_SUCCESS;
+	return NOS_RESULT_SUCCESS;
+}
+
+NOSAPI_ATTR nosResult NOSAPI_CALL Initialize()
+{
+	if (!LoadFunctionPointers_BlueVelvetC())
+	{
+		constexpr auto text = "Failed to load BlueVelvetC function pointers. Make sure you have at Bluefish SDK with version at least 6.5.3.";
+		nosModuleStatusMessage message{
+			.ModuleId = nosEngine.Context->Id,
+		    .UpdateType = NOS_MODULE_STATUS_MESSAGE_UPDATE_TYPE_REPLACE,
+			.MessageType = NOS_MODULE_STATUS_MESSAGE_TYPE_ERROR,
+			.Message = text
+		};
+		nosEngine.SendModuleStatusMessageUpdate(&message);
+		return NOS_RESULT_FAILED;
+	}
+	return NOS_RESULT_SUCCESS;
+}
+
+extern "C"
+{
+/// Nodos calls this function to retrieve the plugin functions.
+NOSAPI_ATTR nosResult NOSAPI_CALL nosExportPlugin(nosPluginFunctions* out)
+{
+	out->ExportNodeFunctions = bf::ExportNodeFunctions;
+	out->Initialize = bf::Initialize;
+	return NOS_RESULT_SUCCESS;
 }
 
 /// Nodos calls this function just before unloading the plugin DLL.
@@ -55,4 +83,5 @@ NOSAPI_ATTR void NOSAPI_CALL nosUnloadPlugin()
 	return;
 }
 }
+
 } // namespace bf
