@@ -19,7 +19,8 @@
                 "name": "nos.sys.vulkan",
                 "version": "5.0.0"
             }
-        ]
+        ],
+        "category": "Media I/O"
     },
     "node_definitions": [
         "Config/BluefishNodes.nosdef",
