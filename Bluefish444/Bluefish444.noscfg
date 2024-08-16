@@ -2,7 +2,7 @@
     "info": {
         "id": {
             "name": "nos.bluefish",
-            "version": "1.0.1"
+            "version": "1.0.2"
         },
         "description": "Nodes for video I/O with Bluefish hardware",
         "display_name": "Bluefish444",
@@ -18,6 +18,10 @@
             {
                 "name": "nos.sys.vulkan",
                 "version": "5.0.0"
+            },
+            {
+                "name": "nos.reflect",
+                "version": "1.0.0"
             }
         ],
         "category": "Media I/O"
