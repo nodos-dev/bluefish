@@ -12,6 +12,10 @@
 NOS_INIT()
 NOS_VULKAN_INIT()
 
+NOS_BEGIN_IMPORT_DEPS()
+	NOS_VULKAN_IMPORT()
+NOS_END_IMPORT_DEPS()
+
 namespace bf
 {
 
@@ -39,7 +43,6 @@ NOSAPI_ATTR nosResult NOSAPI_CALL ExportNodeFunctions(size_t* outCount, nosNodeF
 	if (!outFunctions)
 		return NOS_RESULT_SUCCESS;
 
-	NOS_RETURN_ON_FAILURE(RequestVulkanSubsystem())
 	NOS_RETURN_ON_FAILURE(RegisterChannelNode(outFunctions[static_cast<int>(Nodes::Channel)]))
 	NOS_RETURN_ON_FAILURE(RegisterWaitVBLNode(outFunctions[static_cast<int>(Nodes::WaitVBL)]))
 	NOS_RETURN_ON_FAILURE(RegisterDMAWriteNode(outFunctions[static_cast<int>(Nodes::DMAWrite)]))
@@ -55,7 +58,7 @@ NOSAPI_ATTR nosResult NOSAPI_CALL Initialize()
 	{
 		constexpr auto text = "Failed to load BlueVelvetC function pointers. Make sure you have at Bluefish SDK with version at least 6.5.3.";
 		nosModuleStatusMessage message{
-			.ModuleId = nosEngine.Context->Id,
+			.ModuleId = nosEngine.Module->Id,
 		    .UpdateType = NOS_MODULE_STATUS_MESSAGE_UPDATE_TYPE_REPLACE,
 			.MessageType = NOS_MODULE_STATUS_MESSAGE_TYPE_ERROR,
 			.Message = text
@@ -66,6 +69,13 @@ NOSAPI_ATTR nosResult NOSAPI_CALL Initialize()
 	return NOS_RESULT_SUCCESS;
 }
 
+/// Nodos calls this function just before unloading the plugin DLL.
+/// After this point, you must have your DLL dependencies unloaded (if any).
+NOSAPI_ATTR nosResult NOSAPI_CALL OnPreUnloadPlugin()
+{
+	return NOS_RESULT_SUCCESS;
+}
+
 extern "C"
 {
 /// Nodos calls this function to retrieve the plugin functions.
@@ -73,14 +83,8 @@ NOSAPI_ATTR nosResult NOSAPI_CALL nosExportPlugin(nosPluginFunctions* out)
 {
 	out->ExportNodeFunctions = bf::ExportNodeFunctions;
 	out->Initialize = bf::Initialize;
+	out->OnPreUnloadPlugin = bf::OnPreUnloadPlugin;
 	return NOS_RESULT_SUCCESS;
-}
-
-/// Nodos calls this function just before unloading the plugin DLL.
-/// After this point, you must have your DLL dependencies unloaded (if any).
-NOSAPI_ATTR void NOSAPI_CALL nosUnloadPlugin()
-{
-	return;
 }
 }
 

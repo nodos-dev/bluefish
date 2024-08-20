@@ -13,7 +13,7 @@ get_targets(BLUEFISH_EXTERNAL_TARGETS "${CMAKE_CURRENT_BINARY_DIR}/External/BF44
 group_targets("${BLUEFISH_EXTERNAL_TARGETS}" "External")
 
 set(INCLUDE_FOLDERS "")
-set(DEPENDENCIES bf444_headers Bluefish444_generated ${NOS_SYS_VULKAN_5_2_TARGET} ${NOS_PLUGIN_SDK_TARGET})
+set(DEPENDENCIES bf444_headers Bluefish444_generated ${NOS_SYS_VULKAN_5_8_TARGET} ${NOS_PLUGIN_SDK_TARGET})
 
 nos_add_plugin("Bluefish444" "${DEPENDENCIES}" "${INCLUDE_FOLDERS}")
 group_targets("Bluefish444;Bluefish444_generated" "Bluefish Plugins")

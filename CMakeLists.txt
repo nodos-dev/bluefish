@@ -37,7 +37,7 @@ endmacro()
 
 # Nodos Plugin SDK
 nos_find_sdk("1.2.0" NOS_PLUGIN_SDK_TARGET NOS_SUBSYSTEM_SDK_TARGET NOS_SDK_DIR)
-nos_get_module("nos.sys.vulkan" "5.2" NOS_SYS_VULKAN_5_2_TARGET)
+nos_get_module("nos.sys.vulkan" "5.8" NOS_SYS_VULKAN_5_8_TARGET)
 
 set(FLATC_EXECUTABLE ${NOS_SDK_DIR}/bin/flatc)
 
