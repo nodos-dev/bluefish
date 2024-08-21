@@ -41,12 +41,12 @@ struct DMAWriteNodeContext : DMANodeBase
 		}
 	}
 
-	nosResult ExecuteNode(const nosNodeExecuteArgs* args) override
+	nosResult ExecuteNode(nosNodeExecuteParams* params) override
 	{
 		nosResourceShareInfo inputBuffer{};
-		for (size_t i = 0; i < args->PinCount; ++i)
+		for (size_t i = 0; i < params->PinCount; ++i)
 		{
-			auto& pin = args->Pins[i];
+			auto& pin = params->Pins[i];
 			if (pin.Name == NOS_NAME("Input"))
 				inputBuffer = nos::vkss::ConvertToResourceInfo(*nos::InterpretPinValue<nos::sys::vulkan::Buffer>(*pin.Data));
 		}

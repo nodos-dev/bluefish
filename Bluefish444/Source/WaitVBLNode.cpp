@@ -20,12 +20,12 @@ struct WaitVBLNodeContext : nos::NodeContext
 	{
 	}
 
-	nosResult ExecuteNode(const nosNodeExecuteArgs* args) override
+	nosResult ExecuteNode(nosNodeExecuteParams* params) override
 	{
 		nos::bluefish::ChannelInfo* channelInfo = nullptr;
-		for (size_t i = 0; i < args->PinCount; ++i)
+		for (size_t i = 0; i < params->PinCount; ++i)
 		{
-			auto& pin = args->Pins[i];
+			auto& pin = params->Pins[i];
 			if (pin.Name == NOS_NAME_STATIC("Channel"))
 				channelInfo = nos::InterpretPinValue<nos::bluefish::ChannelInfo>(*pin.Data);
 		}
